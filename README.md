@@ -1,12 +1,12 @@
 # Distributed Transparent File Access
 
 ## Todo
-[] - Security Service
-[] - Directory Service
-[] - Replication
-[] - Caching
-[] - Transactions
-[] - Lock Service
+- [ ] Security Service
+- [ ] Directory Service
+- [ ] Replication
+- [ ] Caching
+- [ ] Transactions
+- [ ] Lock Service
 
 In the following sub-sections we will discuss each in turn.
 
