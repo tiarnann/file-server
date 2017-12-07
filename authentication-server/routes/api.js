@@ -1,38 +1,28 @@
 const express = require('express');
-const user = require('../schemas/user')
+const user = require('../models/user')
 
-const api = (function(express, userSchema, db){
+const api = (function(express, userSchema,db){
 	const router = express.Router();
 
 	const auth = (req,res, next)=>{
+		req.locals.isAuthenticated = true
 		next()
 	}
 
-	router.post('login', auth,(req,res, next)=>{
-		const {username, payload} = req.body
-
-		// lookup associated password
-		// check if session-key exists generate session-key
-		res.send({});
+	// Testing
+	router.get('/', (req, res, next)=>{
+		userSchema.find().then((users)=>{
+			res.send(users);
+		})
 	})
 
-	router.post('signup',(req,res, next)=>{
+	// Logs the user in, creates session key and sends it back
+	router.post('/login', (req, res, next)=>{
 		const {username, payload} = req.body
-
-		// lookup associated password
-		// check if session-key exists generate session-key
-		// 
-		res.send({});
 	})
 
-	router.get('connect', auth,(req,res, next)=>{
-		const {username, payload} = req.body
-
-		// lookup associated password
-		// check if session-key exists generate session-key
-		// 
-		res.send({});
-	})
+	// Gets session-key for connection to a certain node
+	router.get('connect',(req, res, next)=>{})
 
 	return router
 })
