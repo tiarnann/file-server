@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start-auth": "DEBUG=myapp:* db='mongodb://localhost:27017/file-server-auth' ./authentication-server/bin/www",
+    "start-auth": "DEBUG=myapp:* db='mongodb://localhost:27017/file-server-auth' node ./authentication-server/bin/www",
     "test": "mocha ./**/*-test.js"
   },
   "author": "",
@@ -18,7 +18,7 @@
     "debug": "~2.2.0",
     "express": "~4.14.0",
     "jade": "~1.11.0",
-    "mongodb": "^3.0.0-rc0",
+    "mongoose": "^4.13.7",
     "morgan": "~1.7.0",
     "serve-favicon": "~2.3.0"
   }
