@@ -5,13 +5,19 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const config = require('./config')
+const sessionsStore = require('./middleware/sessions')(config.redis)
 const db = require('mongoose',{useMongoClient:true})
 const app = express();
+
 
 /* Connect to database */
 db.connect(config.db,()=>{
 	console.log('Connected to database.')
 })
+
+
+// Setting sessionsStore for each req
+app.use(sessionsStore)
 
 /* Routes */
 const index = require('./routes/index');

@@ -20,6 +20,7 @@
     "jade": "~1.11.0",
     "mongoose": "^4.13.7",
     "morgan": "~1.7.0",
+    "redis": "^2.8.0",
     "serve-favicon": "~2.3.0"
   }
 }
