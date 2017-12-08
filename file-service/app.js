@@ -7,7 +7,7 @@ const db = mongoose.connection
 mongoose.Promise = global.Promise
 
 /* Connect to database */
-mongoose.createConnection('mongodb://localhost:27017/file-server-test', {useMongoClient:true})
+mongoose.connect('mongodb://localhost:27017/file-server-test')
 	.then(()=>{
 		console.log('Connected to database.')
 	})
@@ -32,9 +32,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // app.use((req, res, next)=>{
 // 	const databaseConnnectionMissing = db.isConnected
 // 	if(databaseConnnectionMissing){
-// 		const err = new Error('no database connection found');
-// 	  	err.status = 500;
-// 	 	next(err);
+// 			const err = new Error('no database connection found');
+// 		  	err.status = 500;
+// 		 	next(err);
 // 	}
 // 	next()
 // });
