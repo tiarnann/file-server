@@ -9,7 +9,7 @@ module.exports=(function(serverIps, fetch){
 			i = (i+1) % length 
 			return next
 		}
-	})()
+	})(serverIps)
 
 	const API = function(){}
 	

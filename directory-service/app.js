@@ -5,6 +5,8 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
+const config = require('./config')
+const fileServerApi = require('./services/file-server-api')(config.fileServers,fetch)
 const mongoose = require('mongoose',{useMongoClient:true})
 const db = mongoose.connection
 
@@ -17,7 +19,7 @@ const db = mongoose.connection
 const fileModel = require('./models/file')(mongoose)
 
 /* Routes */
-const apiRoutes = require('./routes/api')(express, fetch, fileModel)
+const apiRoutes = require('./routes/api')(express, fileModel, fileServerApi)
 
 const app = express();
 

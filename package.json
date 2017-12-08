@@ -6,6 +6,7 @@
   "scripts": {
     "start-auth": "DEBUG=* db='mongodb://localhost:27017/file-server-auths' node ./authentication-server/bin/www",
     "start-file": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node ./file-service/bin/www",
+    "start-dir": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node ./directory-service/bin/www",
     "test": "mocha ./**/*-test.js"
   },
   "author": "",
