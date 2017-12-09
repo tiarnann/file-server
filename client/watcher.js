@@ -30,9 +30,10 @@ module.exports=(function(watchr, path, EventEmitter, directory='.', ignoredExten
 			emitter.emit('ignore', fullPath)
 			return
 		}
-
+		
 		const filename = path.basename(fullPath)
-		const type = (currentStat.isDirectory())?'directory':'file'
+		const isDirectory = ((currentStat || previousStat).isDirectory())
+		const type = isDirectory ?'directory':'file'
 
 		emitter.emit(changeType, fullPath, filename, type, currentStat)
 		return

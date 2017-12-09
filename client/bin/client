@@ -4,7 +4,7 @@ const workingDirectory = config.dir || '../tmp/'
 const ignoredExtensions = ['swp', 'swpx']
 
 const fs = require('fs')
-// const watcher = require('../watcher')(workingDirectory,ignoredExtensions)
+const watcher = require('../watcher')(workingDirectory,ignoredExtensions)
 
 const UserAuth = new (require('../user-authentication'))(config.authUrl)
 const FSAPI = (require('../fs-api'))(fs,workingDirectory)
@@ -25,8 +25,11 @@ UserAuth.login(username,password)
 })
 
 watcher.on('create',(fullPath, name, type, currentStat)=>{
+	console.log(name, type)
 })
 watcher.on('update',(fullPath, name, type, currentStat)=>{
+	console.log(name, type)
 })
 watcher.on('delete',(fullPath, name, type, currentStat)=>{
+	console.log(name, type)
 })
