@@ -26,10 +26,13 @@ UserAuth.login(username,password)
 
 watcher.on('create',(fullPath, name, type, currentStat)=>{
 	console.log(name, type)
+	FSAPI.create(name)
 })
 watcher.on('update',(fullPath, name, type, currentStat)=>{
 	console.log(name, type)
+	FSAPI.update(name)
 })
 watcher.on('delete',(fullPath, name, type, currentStat)=>{
 	console.log(name, type)
+	FSAPI.delete(name)
 })
