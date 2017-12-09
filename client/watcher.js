@@ -1,4 +1,4 @@
-module.exports=(function(events,fs){
+module.exports=(function(EventEmitter,fs){
 	
 	const Watcher = function(directory='.', ignoredExtensions=[]){
 		this.ignoredExtensions = ignoredExtensions.reduce((obj,extension)=>{
@@ -9,7 +9,36 @@ module.exports=(function(events,fs){
 		fs.watch(directory, this.listen.bind(this))
 	}
 
-	Watcher.prototype = events.EventEmitter
+	Watcher.prototype = Object.create(EventEmitter.prototype, {
+	    constructor: {
+	        value: Watcher,
+	        enumerable: false
+	    }
+	})
+	
+	Watcher.prototype.stats = function(name){
+		try {
+			const stats = fs.statSync(name)
+
+			if(typeof stats === 'undefined' || stats == null){
+				return {exists: false}
+			}
+
+			let type;
+
+			if(stats.isDirectory()) type = 'directory';
+			if(stats.isFile())type = 'file';
+
+			stats.exists = true
+			stats.type = type
+
+			return stats
+		} catch(e){
+			return {exists:false}
+		}
+
+		
+	}
 	
 	Watcher.prototype.event = function(event, exists){
 		if(event == 'rename'){
@@ -28,14 +57,18 @@ module.exports=(function(events,fs){
 
 		if(ignore){
 			this.emit('ignored', name)
+			return
 		}
-		const associatedEvent = this.event(event)
 
-		this.emit(associatedEvent, name)
+		const stats = this.stats(name)
+		const associatedEvent = this.event(event, stats.exists)
+		
+
+		this.emit(associatedEvent, name, stats)
 	}
 
 	Watcher.prototype.shouldIgnore = function(filename){
-		const splitName = name.split('.')
+		const splitName = filename.split('.')
 		const isDotFile = (splitName[0] == '')
 		const extension = (splitName.length > 1)?splitName.pop():''
 
