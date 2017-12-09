@@ -1,86 +1,139 @@
 const express = require('express');
 const user = require('../models/user')
-const crypto = require('../../lib/authentication/crypto-service')
+const auth = require('../../lib/authentication/auth-service')
 
-const api = (function(crypto, express, userSchema, db){
+const api = (function(auth, express, User, db, identitySecrets){
 	const router = express.Router();
 
+	const UnauthorisedError = (()=>{
+		let err = new Error('user or password is wrong')
+		err.status = 400
+		return err
+	})()
+
 	/*
-		Session keys
+		Store keyname and middleware methods
 	 */
-	const associatedSessionStoreKeyname = (id)=> `auth-session-key:${id}`
+	const StoreValueLifetime = (60)*(120)
 
-	const getSessionKey = (req, res, next)=>{
-		const {username, payload} = req.body
-		
-		const keyname = associatedSessionStoreKeyname(username)
-		req.sessionKey = sessionsStore.get(keyname)
-		
-		next()
-	}
+	const keyNameForSessionStore = username => `sessionStoreKey:${username}`
+	const keyNameForPasswordStore = username => `passwordStoreKey:${username}`
 
-	const decryptPayload = (req,res,next)=>{
-		const {sessionsStore, sessionKey} = req
-		const {username, payload} = req.body
-
-		userSchema.findOne().then((user)=>{
-			const keyname = associatedSessionStoreKeyname(username)
-			
-			sessionsStore.get(keyname,(err, sessionKey)=>{
-				crypto.symmetricDecryptWith(key, payload).then((decryptedPayload)=>{
-					req.body.decryptedPayload = decryptedPayload
-					next()
-				})
-			})
-		})
-	}
-
-	// Testing
-	router.get('/', (req, res, next)=>{
-		userSchema.find().then((users)=>{
-			res.send(users);
-		})
-	})
-
-	// Logs the user in, creates session key and sends it back
-	router.post('/login', (req, res, next)=>{
-		const {username, password} = req.body
+	const attachSessionKey = (req, res, next)=>{
+		const {username} = req.body
 		const {sessionsStore} = req
-		const sessionKey = crypto.generateSalt(15)
 
-		const payload = `{'sessionKey':${sessionKey}`
+		if(typeof sessionsStore === 'undefined' || sessionsStore == null){
+			next()
+		}
 
-		(async ()=>{
-			sessionsStore.set(`${sessionStoreKey}:${username}`,sessionKey,(err, key)=>{
-				if(err){
-					throw new Error(`couldn't store failed you. Sorry about that`)
-				}
-			})
-		}).then(()=>{
-			return crypto.symmetricEncryptWith(sessionKey, response)
-		}).then((encryptedPayload)=>{
-			res.send(encryptedPayload)
+		const keyName = keyNameForSessionStore(username)
+		sessionsStore.get(keyName, function(err, response){
+			if(response == null){
+				next()
+			}
+			req.sessionKey = response
+			next()
 		})
+
+	}
+
+	router.post('/login', attachSessionKey, (req, res, next)=>{
+		const {username, password} = req.body
+		const {sessionKey,sessionsStore} = req
+	
+		if(typeof sessionKey != 'undefined' && sessionKey != null){
+			console.log()
+			const payload = {'session-key': sessionKey}
+
+			auth.encrypt(JSON.stringify(payload)).with(password)	
+				.then((encryptedPayload)=>{
+					res.status(200)
+					res.send(encryptedPayload)
+				})
+				.catch(err=>{
+					res.status(err.status || 400)
+					res.send(err.message || 'unauthorised')
+				})
+			return
+		}
+
+		const usernameUndefined = typeof username === 'undefined' || username == null
+		const passwordUndefined = typeof password === 'undefined' || password == null
+		const storeUndefined = typeof sessionsStore === 'undefined' || sessionsStore == null
+
+		if(usernameUndefined || passwordUndefined || storeUndefined){
+			next(new ReferenceError('param is not defined'));
+		}
+
+		User.findOne({username})
+			.then(user=>{
+				if(user == null) throw UnauthorisedError;
+				if(user.password != password) throw UnauthorisedError;
+
+				return auth.random(15)
+			})
+			.then(sessionKey=>{
+				sessionsStore.set(keyNameForSessionStore(username), sessionKey, 'EX', StoreValueLifetime)
+				sessionsStore.set(keyNameForPasswordStore(username), password, 'EX', StoreValueLifetime)
+				
+				const payload = {'session-key': sessionKey}
+				return auth.encrypt(JSON.stringify(payload)).with(password)
+			})
+			.then((encryptedPayload)=>{
+				res.status(200)
+				res.send(encryptedPayload)
+			})
+			.catch(err=>{
+				res.send(err.status || 400)
+				res.send(err.message || 'unauthorised')
+			})
 	})
 
 	// Gets session-key for connection to a certain node
-	router.get('/connect', getSessionKey, decryptPayload, (req, res, next)=>{
-		const {decryptedPayload} = req.body
-		const {sessionKey} = req
-
-		const response = {
-			'server-type': 'fs'
-			'server-session-key': crypto.generateSalt(15)
+	router.post('/connect',attachSessionKey,  (req, res, next)=>{
+		const {sessionKey,sessionsStore} = req
+		const {username,payload} = req.body
+		
+		if(typeof sessionsStore === 'undefined' || sessionsStore == null){
+			res.status(400)
+			res.send()
+			next()
 		}
-
-		crypto.symmetricEncryptWith(sessionKey, response).then((encryptedPayload)=>{
-			crypto.symmetricEncryptWith(sessionKey, response).then((encryptedPayload)=>{
-				res.send(encryptedPayload)
+		sessionsStore.get(keyNameForPasswordStore(username), function(err, password){
+			if(err != null){
+				res.status(400)
+				res.send('unauthorised')
+				next()
+			}
+			console.log(password)
+			console.log(payload)
+			auth.decrypt(payload).with(password).then(dec=>JSON.parse(dec))
+				.then((decrypted)=>{
+					console.log('this is decrypted')
+					const {identity} = decrypted
+					return identitySecrets[identity]
+				}).then(secret=>{
+					console.log(secret)
+					console.log(sessionKey)
+					return auth.encrypt(sessionKey).with(secret).then(ticket=>ticket)
+				}).then(ticket=>{
+					console.log(ticket)
+					return {'session-key': sessionKey,'ticket': ticket}
+				}).then(token=>{
+					console.log(token)
+					res.status(200)
+					res.send(token)
+				}).catch(err => {
+					console.log(err)
+					res.status(400)
+					res.send('unauthorised')
+				})
 			})
-		})
 	})
+
 
 	return router
 })
 
-module.exports = api.bind(null, crypto, express, user)
+module.exports = api.bind(null, auth, express, user)
