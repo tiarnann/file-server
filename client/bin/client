@@ -4,8 +4,28 @@ const workingDirectory = config.dir || '../tmp/'
 const ignoredExtensions = ['swp', 'swpx']
 
 const fs = require('fs')
-const watcher = require('../watcher')(workingDirectory,ignoredExtensions)
-const UserAuth = require('../user-authentication')(config.authUrl)
+// const watcher = require('../watcher')(workingDirectory,ignoredExtensions)
+
+const UserAuth = new (require('../user-authentication'))(config.authUrl)
+const FSAPI = (require('../fs-api'))(fs,workingDirectory)
+
+const {username, password} = config
+
+
+UserAuth.login(username,password)
+.then(()=>{
+	const identityAuths = config.identities.map((identity)=>{
+		return UserAuth.connect(identity)
+	})
+
+	return Promise.all(identityAuths)
+})
+.then(()=>{
+	config.identities.forEach((identity)=>{
+		const key = UserAuth.sessionKeyFor(identity)
+		FSAPI.set(identity,key)
+	})
+})
 
 watcher.on('create',(fullPath, name, type, currentStat)=>{
 })

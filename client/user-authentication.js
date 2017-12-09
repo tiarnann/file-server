@@ -3,14 +3,14 @@ const fetch = require('node-fetch')
 
 module.exports=(function(auth,fetch){
 	let identityTicketMap = {
-
 	}
 
 	let username;
 	let password;
-
-	const UserAuthentication = function(){
-		this.authUrl = 'http://localhost:3000/api'
+	let sessionKey;
+	
+	const UserAuthentication = function(baseUrl){
+		this.authUrl = baseUrl
 	}
 
 	UserAuthentication.prototype.login = async function(_username, _password){
@@ -21,7 +21,7 @@ module.exports=(function(auth,fetch){
 
 		const stringifiedPayload = JSON.stringify({username, password})
 		console.log(stringifiedPayload)
-		fetch(`${this.authUrl}/login`,{
+		const res = await fetch(`${this.authUrl}/login`,{
 			'method':'POST',
 			'body': stringifiedPayload,
 			'headers': {
@@ -29,12 +29,11 @@ module.exports=(function(auth,fetch){
 				'Content-Type': 'application/json'
 			}
 		})
-		.then(res=>res.text())
-		.then(encrypted=>auth.decrypt(encrypted).with(password))
-		.then(JSON.parse)
-		.then((response)=>{
-			sessionKey = response['session-key']
-		})
+		const encryptedSession = await res.text()
+		const decrypted = await auth.decrypt(encryptedSession).with(password)
+		const parsed = JSON.parse(decrypted)
+		sessionKey = parsed['session-key']
+		return
 	}
 
 	UserAuthentication.prototype.connect = async function(identity){
@@ -55,17 +54,20 @@ module.exports=(function(auth,fetch){
 		const stringifiedPayload = JSON.stringify(connectMessage)
 
 
-		return fetch(`${this.authUrl}/connect`,{
+		const res = await fetch(`${this.authUrl}/connect`,{
 			'method':'POST',
 			'body': stringifiedPayload,
 			'headers':{'content-type': 'application/json'}
 		})
-		.then(res=>res.json())
-		.then((json)=>{
-			identityTicketMap[identity] = json.ticket
-		})
+		const json = await res.json()
+		identityTicketMap[identity] = json.ticket
+		return
 	}
 
-	return new UserAuthentication()
+	UserAuthentication.prototype.sessionKeyFor = function(identity){
+		return identityTicketMap[identity]
+	}
+
+	return UserAuthentication
 
 })(authService,fetch)
