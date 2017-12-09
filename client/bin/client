@@ -14,11 +14,8 @@ const {username, password} = config
 
 UserAuth.login(username,password)
 .then(()=>{
-	const identityAuths = config.identities.map((identity)=>{
-		return UserAuth.connect(identity)
-	})
-
-	return Promise.all(identityAuths)
+	const auths = config.identities.map(UserAuth.connect)
+	return Promise.all(auths)
 })
 .then(()=>{
 	config.identities.forEach((identity)=>{
