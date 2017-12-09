@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start-client":"node --use_strict ./client/bin/client",
     "start-auth": "DEBUG=* db='mongodb://localhost:27017/file-server-auth' node --use_strict ./authentication-server/bin/www",
     "start-file": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict ./file-service/bin/www",
     "start-dir": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict ./directory-service/bin/www",

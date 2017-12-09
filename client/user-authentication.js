@@ -23,7 +23,7 @@ module.exports=(function(auth,fetch){
 
 		return fetch(`${this.authUrl}/login`,{
 			'method':'POST',
-			'body': stringifiedPayload,
+			'body': loginMessage,
 			'headers':{'content-type': 'application/json'}
 		})
 	}
@@ -48,7 +48,7 @@ module.exports=(function(auth,fetch){
 
 		return fetch(`${this.authUrl}/connect`,{
 			'method':'POST',
-			'body': stringifiedPayload,
+			'body': connectMessage,
 			'headers':{'content-type': 'application/json'}
 		})
 	}

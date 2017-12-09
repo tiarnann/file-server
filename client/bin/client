@@ -1,0 +1,15 @@
+#!/usr/local/bin/node
+const config = require('../config.js')
+const workingDirectory = config.dir || '../tmp/'
+const ignoredExtensions = ['swp', 'swpx']
+
+const fs = require('fs')
+const watcher = require('../watcher')(workingDirectory,ignoredExtensions)
+const UserAuth = require('../user-authentication')(config.authUrl)
+
+watcher.on('create',(fullPath, name, type, currentStat)=>{
+})
+watcher.on('update',(fullPath, name, type, currentStat)=>{
+})
+watcher.on('delete',(fullPath, name, type, currentStat)=>{
+})
