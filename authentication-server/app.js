@@ -15,7 +15,6 @@ const sessionsStore = require('./middleware/sessions')(config.redis)
   Database driver setup
  */
 const mongoose = require('mongoose')
-db = mongoose.connection
 mongoose.Promise = global.Promise
 
 
