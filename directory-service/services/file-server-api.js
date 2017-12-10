@@ -12,16 +12,13 @@ module.exports=(function(fileServerIp, fetch){
 
 	FileAPIService.prototype.read = function(id){
 		return this.request(`/files/${id}`, 'GET')
-
 	}
 
 	FileAPIService.prototype.write = function(id, fileBuffer){
-		// reply with associated id
 		return this.request(`/files/`, 'POST', fileBuffer)
 	}
 
 	FileAPIService.prototype.update = function(id, fileBuffer){
-		// reply with associated id
 		return this.request(`/files/${id}`, 'PUT', fileBuffer)
 	}
 

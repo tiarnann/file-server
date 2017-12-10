@@ -29,7 +29,7 @@ const fileModel = require('./models/file')(mongoose)
 const accessControlModel = require('./models/access-control')(mongoose)
 
 /* Routes */
-const filesRoutes = require('./routes/files')(express, fileModel, fileServerApi)
+const filesRoutes = require('./routes/files')(express, fileModel, accessControlModel, fileServerApi)
 const accessControlRoutes = require('./routes/access-control')(express, fileModel, accessControlModel)
 const app = express();
 
