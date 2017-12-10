@@ -26,10 +26,11 @@ mongoose.connect('mongodb://localhost:27017/file-server-test')
 
 /* Models */
 const fileModel = require('./models/file')(mongoose)
+const accessControlModel = require('./models/access-control')(mongoose)
 
 /* Routes */
 const filesRoutes = require('./routes/files')(express, fileModel, fileServerApi)
-
+const accessControlRoutes = require('./routes/access-control')(express, fileModel, accessControlModel)
 const app = express();
 
 /* Middleware */
@@ -46,6 +47,7 @@ app.use(cookieParser());
 
 /* Mapping routes */
 app.use('/api', filesRoutes);
+app.use('/api', accessControlRoutes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

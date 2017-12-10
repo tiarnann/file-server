@@ -2,20 +2,14 @@ module.exports=(function(mongoose){
 	const Schema = mongoose.Schema;
 
 	const accessControlSchema = new Schema({
-		username: { type: String, required: true},
+		owner: String,
 		associatedFileId: Schema.Types.ObjectId,
 		access: { 
-			'read': { type: String, required: true},
-			'write': { type: String, required: true},
-			'lock': { type: String, required: true}
+			'read': { type: String, required: true, default: true},
+			'write': { type: String, required: true, default: true},
+			'lock': { type: String, required: true, default: false}
 		}
 	}, { collection: 'access-control' })
 
-	mongoose.model('AccessControl', folderSchema) 
+	return mongoose.model('AccessControl', accessControlSchema) 
 })
-
-r (read)
-Allows one to read the contents of file in the directory.
-w (write)
-Allows one to modify the contents of files in a directory and use chmod on them.
-k (lock)
