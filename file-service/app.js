@@ -16,10 +16,12 @@ mongoose.connect('mongodb://localhost:27017/file-server-test')
 
 /* Models */
 const fileModel = require('./models/file')(mongoose)
+const transactionModel = require('./models/transaction')(mongoose)
+const shadowFileModel = require('./models/shadow-file')(mongoose)
 
 /* Routes */
 const filesRoutes = require('./routes/files')(express, fileModel)
-const transactionsRoutes = require('./routes/transactions')(express, fileModel)
+const transactionsRoutes = require('./routes/transactions')(express, transactionModel, shadowFileModel)
 
 const app = express();
 
@@ -41,6 +43,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 /* Mapping routes */
 app.use('/api', filesRoutes);
+app.use('/api', transactionsRoutes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

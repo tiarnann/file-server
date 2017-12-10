@@ -10,9 +10,9 @@ module.exports=(function(express, transaction, shadowFile){
 	const Transaction = transaction
 	const ShadowFile = shadowFile
 	const router = express.Router();
-
-	/* get tid transaction. */
-	router.get('/transactions/', (req, res, next)=>{
+	
+	/* perform  transaction. */
+	router.post('/transactions/', (req, res, next)=>{
 		const {host, port} = req
 		
 		Transaction.insert({server:host, port:port })
@@ -46,7 +46,7 @@ module.exports=(function(express, transaction, shadowFile){
 	}
 
 	/* add change to transaction. */
-	router.post('/transactions/:tId', (req, res, next)=>{
+	router.put('/transactions/:tId', (req, res, next)=>{
 		const payload = req.body
 		const {transaction} = req
 		const transactionId = transaction._id
@@ -59,6 +59,14 @@ module.exports=(function(express, transaction, shadowFile){
 			res.status(500)
 			res.send('database connection failure for  creating')
 		})
+	})
+
+	/* complete transaction. */
+	router.get('/transactions/:tId', (req, res, next)=>{
+		const {transaction} = req
+		const transactionId = transaction._id
+		
+		res.status(200)
 	})
 
 	/* cancel transaction. */
