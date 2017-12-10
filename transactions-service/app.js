@@ -5,14 +5,29 @@ const bodyParser = require('body-parser')
 
 const config = require('./config')
 const mongoose = require('mongoose')
-const api = require('./routes/api')(express, mongoose)
+mongoose.Promise = global.Promise
+
+/* Connect to database */
+mongoose.connect('mongodb://localhost:27017/file-server-test')
+	.then(()=>{
+		console.log('Connected to database.')
+	})
+	.catch(()=>{
+		console.log('Error occurred while connecting to database.')
+	})
+
 const app = express()
 
 app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
-app.use('/api', api);
+
+const transactionModel = require('./models/transaction')(mongoose)
+const shadowFileModel = require('./models/shadow-file')(mongoose)
+
+const transactionsRoutes = require('./routes/transactions')(express, transactionModel, shadowFileModel)
+app.use('/api', transactionsRoutes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -29,7 +44,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.('error');
+  res.send('error');
 });
 
 module.exports = app;
