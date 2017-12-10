@@ -33,6 +33,7 @@ module.exports=(function(auth,fetch){
 		const decrypted = await auth.decrypt(encryptedSession).with(password)
 		const parsed = JSON.parse(decrypted)
 		sessionKey = parsed['session-key']
+		identityTicketMap['user'] = sessionKey
 		return
 	}
 
