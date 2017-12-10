@@ -59,7 +59,6 @@ module.exports=(function(express, transactionModel, shadowFileModel){
 			'transactionId': req.transaction._id
 		},
 			{'data': new Buffer('hello'),
-			'associatedFileId': "5a33c3ef9cf0d59091cac83f",
 			'transactionId': req.transaction._id}
 		] 
 
@@ -77,8 +76,32 @@ module.exports=(function(express, transactionModel, shadowFileModel){
 	/* complete transaction. */
 	router.get('/transactions/:tId',verifyServerForTransaction, (req, res, next)=>{
 		const {transaction} = req
-		res.status(200)
-		res.send(req.transaction)
+		const transactionId = transaction._id
+
+		ShadowFile.find({'transactionId':transactionId})
+		.then((shadowFiles)=>{
+			const commits = shadowFiles.map((file)=>{
+				const commit =  {'data':file.data}
+				const id = file.associatedFileId
+				if(typeof id != 'undefined' || id != null){
+					commit.id = id
+				}
+				return commit
+			})
+
+			return commits
+		})
+		.then((commits)=>{
+			return File.insertMany(commits, { upsert : true })
+		})
+		.then(()=>{
+			res.status(200)
+			res.send()
+		})
+		.catch(()=>{
+			res.status(500)
+			res.send('failure to complete transaction')
+		})
 	})
 
 	/* cancel transaction. */
