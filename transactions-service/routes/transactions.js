@@ -11,15 +11,21 @@ module.exports=(function(express, transactionModel, shadowFileModel, fileModel){
 	if(typeof shadowFileModel === 'undefined' || shadowFileModel == null){
 		console.error(`Param shadowFileModel not defined`)
 	}
-
-
-	/* Assigning models */
+	
 	const Transaction = transactionModel
 	const ShadowFile = shadowFileModel
 	const File = fileModel
 	const router = express.Router();
 	
-	/* perform  transaction. */
+	/**
+	 * @api {get} /user/:id Request User information
+	 * @apiName GetTransaction
+	 * @apiGroup Transaction
+	 *
+	 * @apiParam {Number} id Users unique ID.
+	 * 
+	 * @apiSuccess (200) {Object} [an object containing the created transactionId]
+	 */
 	router.post('/transactions/', (req, res, next)=>{
 		const {host, port} =  {host:'localhost'}
 
@@ -54,7 +60,15 @@ module.exports=(function(express, transactionModel, shadowFileModel, fileModel){
 		})
 	}
 
-	/* add change to transaction. */
+	/**
+	 * @api {put} /transactions/:transactionId Request User information
+	 * @apiName PutTransaction
+	 * @apiGroup Transaction
+	 *
+	 * @apiParam {String} id of associated transaction.
+	 *
+	 * @apiSuccess {String} klnasldkns
+	 */
 	router.put('/transactions/:tId',verifyServerForTransaction, (req, res, next)=>{
 		const payload =	[
 			{'data': new Buffer('hello'),
@@ -76,7 +90,15 @@ module.exports=(function(express, transactionModel, shadowFileModel, fileModel){
 		})
 	})
 
-	/* complete transaction. */
+	/**
+	 * @api {get} /transactions/:transactionId Get result of transaction (completes transaction)
+	 * @apiName GetTransaction
+	 * @apiGroup Transaction
+	 *
+	 * @apiParam {String} id of associated transaction.
+	 *
+	 * @apiSuccess (200) {Object[]} Returns an updated list [File]
+	 */
 	router.get('/transactions/:tId',verifyServerForTransaction, (req, res, next)=>{
 		const {transaction} = req
 		const transactionId = transaction._id
@@ -107,7 +129,15 @@ module.exports=(function(express, transactionModel, shadowFileModel, fileModel){
 		})
 	})
 
-	/* cancel transaction. */
+	/**
+	 * @api {delete} /transactions/:transactionId Deletes transaction and associated commits
+	 * @apiName DeleteTransaction
+	 * @apiGroup Transaction
+	 *
+	 * @apiParam {String} id of associated transaction.
+	 *
+	 * @apiSuccess (200) Sucessful
+	 */
 	router.delete('/transactions/:tId',verifyServerForTransaction, (req, res, next)=>{
 		const {transaction} = req
 		const transactionId = transaction._id
