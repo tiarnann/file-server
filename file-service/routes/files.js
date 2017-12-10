@@ -58,11 +58,16 @@ module.exports=(function(express, file){
 	/* update file */
 	router.put('/files/:fileId', (req, res, next)=>{
 		const {fileId} = req.params
-		const {data} = file
+		const {payload} = req.body
+		const {data} = req.body
+		
 
 		File.update({'_id':fileId}, {data})
 			.then((result)=>{
-				res.send(200)
+				res.status(200)
+				res.send({
+					'associatedFileId':fileId
+				})
 			})
 			.catch((err)=>{
 				res.send(err)
@@ -73,9 +78,10 @@ module.exports=(function(express, file){
 	router.delete('/files/:fileId', (req, res, next)=>{
 		const {fileId} = req.params
 
-		File.remove({'_id':fileId})
+		File.findByIdAndRemove(fileId)
 			.then((result)=>{
-				res.send(200)
+				res.status(200)
+				res.send()
 			})
 			.catch((err)=>{
 				res.send(err)
