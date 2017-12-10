@@ -1,4 +1,4 @@
-module.exports=(function(express, transactionModel, shadowFileModel){
+module.exports=(function(express, transactionModel, shadowFileModel, fileModel){
 	if(typeof express === 'undefined' || express == null){
 		console.error(`Param express not defined`)
 	}
@@ -12,8 +12,11 @@ module.exports=(function(express, transactionModel, shadowFileModel){
 		console.error(`Param shadowFileModel not defined`)
 	}
 
+
+	/* Assigning models */
 	const Transaction = transactionModel
 	const ShadowFile = shadowFileModel
+	const File = fileModel
 	const router = express.Router();
 	
 	/* perform  transaction. */
@@ -94,9 +97,9 @@ module.exports=(function(express, transactionModel, shadowFileModel){
 		.then((commits)=>{
 			return File.insertMany(commits, { upsert : true })
 		})
-		.then(()=>{
+		.then((result)=>{
 			res.status(200)
-			res.send()
+			res.send(result)
 		})
 		.catch(()=>{
 			res.status(500)

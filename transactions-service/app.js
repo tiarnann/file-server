@@ -22,11 +22,14 @@ app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
-
+/* Getting all dependencies and injecting them */
 const transactionModel = require('./models/transaction')(mongoose)
 const shadowFileModel = require('./models/shadow-file')(mongoose)
+const fileModel = require('./models/file')(mongoose)
+const transactionsDeps = [express, transactionModel, shadowFileModel, fileModel]
 
-const transactionsRoutes = require('./routes/transactions')(express, transactionModel, shadowFileModel)
+/* Assigning routes */
+const transactionsRoutes = require('./routes/transactions')(...transactionsDeps)
 app.use('/api', transactionsRoutes);
 
 // catch 404 and forward to error handler
