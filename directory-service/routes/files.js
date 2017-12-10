@@ -1,61 +1,81 @@
-module.exports=(function(express, file, fileServerApi){
+module.exports=(function(express, file, FileAPIService){
 	const File = file
 	const router = express.Router();
 	
 	/* read home page. */
 	router.get('/files/:fileId', function(req, res, next) {
-		const {payload} = req.body
-		const {name} = payload
-			
-		File.find({'name': name},(err, file)=>{
-			if(err){
-				res.send(500)
-			}
-			const id = file.associatedFileId
-			
-			return fileServerApi.read(id)
-		})
+		const {fileId} = req.params
+		 // .const {name}
+		res.send(200)
+		res.send({fileId})
+
+		// File.findOne({name})
+		// FileAPIService.read(id)
+		
+		// FileAPIService.update(id, fileBuffer){
+		// FileAPIService.delete(id)
 	})
 
 	/* write file */
-	router.post('/files/:fileId', function(req, res, next) {
+	router.post('/files/', function(req, res, next) {
 		const {payload} = req.body
-		const {file} = payload
-		const {name, data} = file
+		const {data, name} = payload
 
-		File.create(file, (err, file)=>{
-			if(err){
+		FileAPIService.write(data)
+			.then(res=>res.json())
+			.then(json=>json.associatedFileId)
+			.then(associatedFileId=>{
+				return File.create({name, associatedFileId})
+			})
+			.then(result=>{
+				const {name, associatedFileId} = result
+				res.status(200)
+				res.send({name, associatedFileId})
+			})
+			.catch(()=>{
 				res.send(500)
-			}
-
-			res.send(200)
-		})
+				res.send(`couldn't write file`)
+			})
 	})
 
 	/* update file */
 	router.put('/files/:fileId', function(req, res, next) {
 		const {payload} = req.body
-		const {file} = payload
-		const {name, data} = file
+		const {fileId} = req.params
+		const {data, name} = payload
 
-		File.update({'name':name},file,(err, file)=>{
-			if(err){
+		FileAPIService.update(fileId, data)
+			.then(res=>res.json())
+			.then(json=>json.associatedFileId)
+			.then(associatedFileId=>{
+				return File.updateOne({associatedFileId}, {name})
+			})
+			.then(result=>{
+				res.status(200)
+				res.send(result)
+			})
+			.catch(()=>{
 				res.send(500)
-			}
-
-			res.send(200)
-		})
+				res.send(`couldn't write file`)
+			})
 	})
 
 	/* delete home page. */
 	router.delete('/files/:fileId', function(req, res, next) {
-		File.remove({'name':name},(err, file)=>{
-			if(err){
-				res.send(500)
-			}
+		const {fileId} = req.params
 
-			res.send(200)
-		})
+		FileAPIService.delete(fileId)
+			.then(json=>{
+				return File.remove({associatedFileId:fileId})
+			})
+			.then(result=>{
+				res.status(200)
+				res.send(result)
+			})
+			.catch(()=>{
+				res.send(500)
+				res.send(`couldn't write file`)
+			})
 	})
 
 	return router

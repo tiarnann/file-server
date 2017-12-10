@@ -9,9 +9,7 @@
 module.exports={
 	'secret': 'SESSION_KEY',
 	'port': 3001,
-	'fileServers':[
-		/*list of ips*/
-	], 
+	'fileServerIp': 'http://localhost:3001/api',
 	/* redis info for sessions*/
 	'redis':{
 		'port':6379,

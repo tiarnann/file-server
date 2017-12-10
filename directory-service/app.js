@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
 const config = require('./config')
-const fileServerApi = require('./services/file-server-api')(config.fileServers,fetch)
+const fileServerApi = require('./services/file-server-api')(config.fileServerIp, fetch)
 const mongoose = require('mongoose')
 const db = mongoose.connection
 mongoose.Promise = global.Promise
@@ -39,10 +39,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Auth
-const {secret} = config
-const auth = require('../lib/authentication/auth-service')
-const verifyAndDecrypt = require('../lib/authentication/server-client-authentication')(auth, secret)
-app.use(verifyAndDecrypt)
+// const {secret} = config
+// const auth = require('../lib/authentication/auth-service')
+// const verifyAndDecrypt = require('../lib/authentication/server-client-authentication')(auth, secret)
+// app.use(verifyAndDecrypt)
 
 /* Mapping routes */
 app.use('/api', filesRoutes);
