@@ -13,20 +13,17 @@ mongoose.Promise = global.Promise
 
 /* Connect to database */
 mongoose.connect('mongodb://localhost:27017/file-server-test')
-	.then(()=>{
-		console.log('Connected to database.')
-	})
-	.catch(()=>{
-		console.log('Error occurred while connecting to database.')
-	})
-// /* Connect to database */
-// db.connect('',()=>{
-// 	console.log('Connected to database.')
-// })
+.then(()=>{
+	console.log('Connected to database.')
+})
+.catch(()=>{
+	console.log('Error occurred while connecting to database.')
+})
 
 /* Models */
-const fileModel = require('./models/file')(mongoose)
 const accessControlModel = require('./models/access-control')(mongoose)
+const fileModel = require('./models/file')(mongoose)
+
 
 /* Routes */
 const filesRoutes = require('./routes/files')(express, fileModel, accessControlModel, fileServerApi)

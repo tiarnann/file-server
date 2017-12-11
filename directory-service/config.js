@@ -1,7 +1,6 @@
 module.exports={
 	'secret': 'SESSION_KEY',
-	'port': 3001,
-	'fileServerIp': 'http://localhost:3001/api',
+	'fileServerIp': `http://localhost:${process.env.FILE_PORT}/api`,
 	'redis':{
 		'port':6379,
 		'host':'127.0.0.1',
