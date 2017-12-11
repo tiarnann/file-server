@@ -4,11 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start-client":"node --use_strict  ./client/bin/client",
-    "start-auth": "DEBUG=* db='mongodb://localhost:27017/file-server-auth'  node --use_strict --inspect ./authentication-server/bin/www",
-    "start-file": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./file-service/bin/www",
-    "start-dir": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./directory-service/bin/www",
-    "start-tr": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./transactions-service/bin/www",
+    "start-client": "node --use_strict  ./client/bin/client",
+    "start-auth": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-auth'  node --use_strict ./authentication-server/bin/www",
+    "start-file": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict ./file-service/bin/www",
+    "start-dir": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict ./directory-service/bin/www",
+    "start-tr": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict ./transactions-service/bin/www",
+    "start-client-i": "node --use_strict --inspect  ./client/bin/client",
+    "start-auth-i": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-auth'  node --use_strict --inspect ./authentication-server/bin/www",
+    "start-file-i": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./file-service/bin/www",
+    "start-dir-i": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./directory-service/bin/www",
+    "start-tr-i": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./transactions-service/bin/www",
     "test": "mocha ./**/*-test.js"
   },
   "author": "",
@@ -18,6 +23,7 @@
   },
   "dependencies": {
     "body-parser": "~1.15.2",
+    "commander": "^2.12.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.2.0",
     "express": "~4.14.0",
@@ -29,3 +35,6 @@
     "serve-favicon": "~2.3.0"
   }
 }
+
+
+
