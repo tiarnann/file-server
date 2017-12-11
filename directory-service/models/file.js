@@ -3,8 +3,8 @@ module.exports=(function(mongoose){
 
 	const fileSchema = new Schema({
 		name: String,
-		associatedFileId: Schema.Types.ObjectId,
-		accessControl:  { type: Schema.Types.ObjectId, ref: 'AccessControl' }
+		associatedFileId: String,
+		accessControl:  mongoose.model('AccessControl').schema
 	}, { collection: 'files' })
 
 	return mongoose.model('File', fileSchema) 
