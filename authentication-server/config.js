@@ -5,15 +5,15 @@ module.exports=(function(){
 
 	return {
 		'db': (process.env.db || ''),
-		'redis':{
-			'port': 6379,
-			'host':'127.0.0.1',
-			'path': '/tmp/redis.sock'
+		'redisOptions':{
+			'port': process.env.npm_package_config_redis_port,
+			'host': process.env.npm_package_config_redis_host,
+			'path': process.env.npm_package_config_redis_path
 		},
 		'credentials': {},
 		'identity-secrets':{
-			'directory-server':'SESSION_KEY',
-			'file-server':'SESSION_KEY'
+			'directory-server': process.env.npm_package_config_dir_server_secret,
+			'file-server':process.env.npm_package_config_file_server_secret
 		}
 	}
 }())

@@ -4,22 +4,26 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": " npm run start-auth & npm run start-file & npm run start-dir &",
     "start-client": "node --use_strict  ./client/bin/client",
-    "start-auth": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-auth'  node --use_strict ./authentication-server/bin/www",
-    "start-file": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict ./file-service/bin/www",
-    "start-dir": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict ./directory-service/bin/www",
-    "start-tr": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict ./transactions-service/bin/www",
+    "start-auth": "db='mongodb://localhost:27017/file-server-auth'  node --use_strict ./authentication-server/bin/www",
+    "start-file": "db='mongodb://localhost:27017/file-server-test' node --use_strict ./file-service/bin/www",
+    "start-dir": "db='mongodb://localhost:27017/file-server-test' node --use_strict ./directory-service/bin/www",
+    "start-tr": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict ./transactions-service/bin/www",
     "start-client-i": "node --use_strict --inspect  ./client/bin/client",
-    "start-auth-i": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-auth'  node --use_strict --inspect ./authentication-server/bin/www",
-    "start-file-i": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./file-service/bin/www",
-    "start-dir-i": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./directory-service/bin/www",
-    "start-tr-i": "AUTH_PORT=3000 DIR_PORT=3001 FILE_PORT=3002 DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./transactions-service/bin/www",
+    "start-auth-i": "DEBUG=* db='mongodb://localhost:27017/file-server-auth'  node --use_strict --inspect ./authentication-server/bin/www",
+    "start-file-i": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./file-service/bin/www",
+    "start-dir-i": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./directory-service/bin/www",
+    "start-tr-i": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node --use_strict --inspect ./transactions-service/bin/www",
     "test": "mocha ./**/*-test.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "mocha": "^4.0.1"
+  },
+  "bin": {
+    "afs": "./client/bin/client"
   },
   "dependencies": {
     "body-parser": "~1.15.2",
@@ -31,10 +35,28 @@
     "mongoose": "^4.13.7",
     "morgan": "~1.7.0",
     "node-fetch": "^1.7.3",
+    "node-persist": "^2.1.0",
     "redis": "^2.8.0",
     "serve-favicon": "~2.3.0"
+  },
+  "config":{
+    "auth_server":{
+      "port":3000,
+      "secret":"Tdzb&vC6zve()^psaX$WSXz1w-je3!E@"
+    },
+    "dir_server": {
+      "port":3001,
+      "secret":"H%#z%Kvfy80XCL#6NKSVBKo-MKEz@3yx"
+    },
+    "file_server": {
+      "port":3002,
+      "secret":"KxqzOXYR&is(-2NDCKf3UAzf2d$_FyUP"
+    },
+    "root_directory": "afs-storage",
+    "redis":{
+      "port":6379,
+      "host":"127.0.0.1",
+      "socket": "/tmp/redis.sock"
+    }
   }
 }
-
-
-

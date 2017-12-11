@@ -1,6 +1,9 @@
 module.exports={
 	'username':'test',
-	'password':'password'
+	'password':'password',
+	'identityTicketMap': {
+
+	}
 }
 
 /*
@@ -9,4 +12,5 @@ FILE_HOST='http://localhost/api'
 DIRECTORY_HOST='http://localhost/api'
 AUTH_PORT=3000
 FILE_PORT=3001
-DIRECTORY_PORT=3002*/
+DIRECTORY_PORT=3002
+*/

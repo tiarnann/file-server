@@ -7,6 +7,7 @@
 		Redis store for sessions
  */
 module.exports={
+	'secret':process.env.npm_package_config_file_server_secret,
 	'dbs':[
 	], 
 	'redis':{
