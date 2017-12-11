@@ -13,18 +13,29 @@ module.exports=(function(express, file, accessControl, FileAPIService){
 	 * @apiSuccess (200) {Object[]} Returns an list of files
 	 */
 	router.get('/files/', function(req, res, next) {
-		File.find({}).populate({
-    		path: 'accessControl',
-    		select: 'permissions'
-  		})
-		.then((files)=>{
-			res.status(200)
-			res.send(files)
-		})
-		.catch(()=>{
-			res.send(500)
-			res.send(`couldn't write file`)
-		})
+		File.find({})
+			.then((fileArray)=>fileArray.map(file=>file.toJSON()))
+			.then(files=>{
+				const filesWithData = files.map(file=>{
+					return FileAPIService.read(file.associatedFileId)
+						.then(response=>response.json())
+						.then(json=>{
+							const buffer = json.data
+							file.data = buffer.data
+							return file
+						})
+				})
+				return Promise.all(filesWithData)
+			})
+			.then(files=>{
+				console.log(files)
+				res.status(200)
+				res.send(files)
+			})
+			.catch(()=>{
+				res.status(500)
+				res.send(`couldn't write file`)
+			})
 	})
 
 	/**
@@ -68,21 +79,17 @@ module.exports=(function(express, file, accessControl, FileAPIService){
 		const {username} = req.headers
 		const {data,name} = payload
 
-		FileAPIService.write(data)
-			.then(res=>res.json())
+		FileAPIService.write({data})
+			.then(response=>response.json())
 			.then(json=>json.associatedFileId)
 			.then(associatedFileId=>{
-				return AccessControl.create({username, associatedFileId})
-			})
-			.then(accessControl=>{	
-				const {_id, associatedFileId} = accessControl._doc
-				return File.create({name, associatedFileId, accessControl: _id})
+			// 	AccessControl.create()
+				return File.create({'name':name, 'associatedFileId':associatedFileId,'accessControl':{}})
 			})
 			.then(result=>{
-				const file = result._doc
-				const {name, associatedFileId} = file
+				const doc = result.toJSON()
 				res.status(200)
-				res.send({name, associatedFileId})
+				res.send(doc)
 			})
 			.catch(()=>{
 				res.send(500)

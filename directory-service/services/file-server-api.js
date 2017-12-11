@@ -7,14 +7,19 @@ module.exports=(function(fileServerIp, fetch){
 		const url = `${baseUrl}${path}`
 		const options = {method, headers}
 
-		return fetch(url,options)
+		if(body){
+			options.body = JSON.stringify(body)
+			options.headers['Content-Type'] = 'application/json'
+		}
+
+		return fetch(url, options)
 	}
 
 	FileAPIService.prototype.read = function(id){
 		return this.request(`/files/${id}`, 'GET')
 	}
 
-	FileAPIService.prototype.write = function(id, fileBuffer){
+	FileAPIService.prototype.write = function(fileBuffer){
 		return this.request(`/files/`, 'POST', fileBuffer)
 	}
 
