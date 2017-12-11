@@ -1,11 +1,24 @@
 // #!/usr/local/bin/node
-const repl = require('repl')
+const workingDirectory = '../tmp'
+const storage require('node-persist').initSync()
+const identities = ['file-server','directory-server']
 
-const replServer = repl.start({prompt: 'afs-client >'})
+const cli = require('commander')
+cli.version('0.0.1')
 
-replServer.on('exit',()=>{
-	console.log('bye now |^_^|')
+cli
+.command('login <username> <username>')
+.action(function(username, password){
 })
 
+cli
+.command('open <file> in <mode>')
+.action(function(file, mode){
+})
 
+cli
+.command('close <file> in <mode>')
+.action(function(file, mode){
+})
 
+cli.parse(process.argv)
