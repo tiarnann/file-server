@@ -11,6 +11,13 @@ const mongoose = require('mongoose')
 const db = mongoose.connection
 mongoose.Promise = global.Promise
 
+/* Redis */
+/*const redis = require("redis");
+const {redisOptions} = config
+const client = redis.createClient(redisOptions);
+redis.debug_mode = true;*/
+
+
 /* Connect to database */
 mongoose.connect('mongodb://localhost:27017/file-server-test')
 .then(()=>{
@@ -41,7 +48,9 @@ app.use(cookieParser());
 // const auth = require('../lib/authentication/auth-service')
 // const verifyAndDecrypt = require('../lib/authentication/server-client-authentication')(auth, secret)
 // app.use(verifyAndDecrypt)
-
+// 
+/* Attach redis */
+// app.use((req,res, next)=>{req.redis = client;next()})
 /* Mapping routes */
 app.use('/api', filesRoutes);
 app.use('/api', accessControlRoutes);

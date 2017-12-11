@@ -1,8 +1,18 @@
-module.exports=(function(express, file, accessControl, FileAPIService){
+module.exports=(function(express, file, accessControl, FileAPIService,){
 	const File = file
 	const AccessControl = accessControl
 	const router = express.Router();
 	
+	const caching = (req, res, next)=>{
+		const cached = req.redis.get(req.route, function(err, cached){
+			if(cached){
+				res.send(JSON.parse(cached))
+			} else {
+				next()
+			}
+		})
+
+	}
 	/**
 	 * @api {get} /files/ Get file all files
 	 * @apiName GetFile
@@ -28,7 +38,6 @@ module.exports=(function(express, file, accessControl, FileAPIService){
 				return Promise.all(filesWithData)
 			})
 			.then(files=>{
-				console.log(files)
 				res.status(200)
 				res.send(files)
 			})
@@ -51,18 +60,25 @@ module.exports=(function(express, file, accessControl, FileAPIService){
 		const {fileId} = req.params
 		const {username} = req.headers
 
-		AccessControl.find({username, associatedFileId: fileId})
-		.then((control)=>{
-			if(write == false){
-				const err = new Error(`user doesn't have read permissions`)
-				err.status = 423
-				throw err
-				return
-			}
-		})
-		.then(()=>{
-			return FileAPIService.update(fileId, data)
-		})		
+		File.findById(fileId)
+			.then(file=>{
+				return FileAPIService.read(file.associatedFileId)
+					.then(response=>response.json())
+					.then(json=>{
+						const buffer = json.data
+						file.data = buffer.data
+						return file
+					})
+			})
+			.then(file=>{
+				console.log(file)
+				res.status(200)
+				res.send(file)
+			})
+			.catch(()=>{
+				res.status(500)
+				res.send(`couldn't read file`)
+			})	
 	})
 
 	/**
@@ -72,7 +88,7 @@ module.exports=(function(express, file, accessControl, FileAPIService){
 	 *
 	 * @apiParam {String} id of associated transaction.
 	 *
-	 * @apiSuccess (200) {Object[]} Returns an updated list [File]
+	 * @apiSuccess (200) {Object[]} Returns a new file with 
 	 */
 	router.post('/files/', function(req, res, next) {
 		const {payload} = req.body
@@ -83,7 +99,6 @@ module.exports=(function(express, file, accessControl, FileAPIService){
 			.then(response=>response.json())
 			.then(json=>json.associatedFileId)
 			.then(associatedFileId=>{
-			// 	AccessControl.create()
 				return File.create({'name':name, 'associatedFileId':associatedFileId,'accessControl':{}})
 			})
 			.then(result=>{
@@ -112,27 +127,32 @@ module.exports=(function(express, file, accessControl, FileAPIService){
 		const {username} = req.headers
 		const {data, name} = payload
 
-		AccessControl.find({username, associatedFileId: fileId})
-		.then((control)=>{
-			if(write == false){
-				const err = new Error(`user doesn't have read permissions`)
-				err.status = 423
-				throw err
-				return
-			}
-		})
-		.then(()=>{
-			return FileAPIService.update(fileId, data)
-		})		
-		.then(res=>res.json())
-		.then(json=>json.associatedFileId)
-		.then(associatedFileId=>{
-			return File.updateOne({associatedFileId}, {name})
-		})
-		.then(result=>{
+		File.findOne({associatedFileId: fileId})
+		.then(file=>{
 			res.status(200)
-			res.send(result)
+			res.send()
 		})
+		// AccessControl.find({username, associatedFileId: fileId})
+		// .then((control)=>{
+		// 	if(write == false){
+		// 		const err = new Error(`user doesn't have read permissions`)
+		// 		err.status = 423
+		// 		throw err
+		// 		return
+		// 	}
+		// })
+		// .then(()=>{
+		// 	return FileAPIService.update(fileId, data)
+		// })		
+		// .then(res=>res.json())
+		// .then(json=>json.associatedFileId)
+		// .then(associatedFileId=>{
+		// 	return File.updateOne({associatedFileId}, {name})
+		// })
+		// .then(result=>{
+		// 	res.status(200)
+		// 	res.send(result)
+		// })
 		.catch((err)=>{
 			res.send(err.status || 500)
 			res.send(err.message || `couldn't write file`)
