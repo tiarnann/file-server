@@ -1,23 +1,22 @@
 #!/usr/local/bin/node
-const identities = ['file-server','directory-server']
-const Authentication = require('../user-authentication')
-const FileSystemAPI = require('../fs-api')
-const storage = require('node-persist'); storage.initSync()
-
-const workingDirectory = '../tmp'
+const fs = require('fs')
 const cli = require('commander')
+const workingDirectory = '../tmp'
+const identities = ['file-server','directory-server']
+
+
+const storage = require('node-persist'); storage.initSync()
+const FileSystemAPI = require('../fs-api')(fs, workingDirectory)
+const Authentication = require('../user-authentication')
 
 /*=Attempt to load previous user details=*/
-let options;
-const username = storage.getItemSync('username')
-const password = storage.getItemSync('password')
+let options = storage.getItemSync('options')
 /*=======================================*/
 
 const UserAuth = new Authentication('http://localhost:3000/api', options)
 const FSClient = new FileSystemAPI(UserAuth)
 
-cli
-.command('login <username> <username>')
+cli.command('login <username> <username>')
 .action(function(username, password){
 	UserAuth.login(username, password)
 	.then(()=>{
@@ -25,21 +24,34 @@ cli
 		return Promise.all(auths)
 	})
 	.then(()=>{
-		console.log('Logged in! Fetching some files...')
+		console.log('Logged in!')
+		console.log('Now fetching some files...')
+		return FSClient.fetch()
 	})
-	.catch(()=>{
-		console.log('Whoops! Those credentials must be incorrect')
+	.then((files)=>{
+		console.log(`${files.length} file(s) retrieved...`)
+		storage.setItemSync('files',files)
+		storage.setItemSync('options', UserAuth.state())
+	})
+	.catch((err)=>{
+		console.log('Whoops! Something went wrong...')
+		console.error(err)
 	})
 })
 
-cli
-.command('open <file> <mode>')
-.action(function(file, mode){
-	console.log(file, mode)
+cli.command('list').action(function(){
+	const files = storage.getItemSync('files')
+	files.forEach((file)=>{
+		console.log(file)
+		// let line = ''
+		// line += (file.accessControl.read)?'r':'-'
+		// line += (file.accessControl.write)?'r':'-'
+		// line += (file.accessControl.write)?'r':'-'
+		// line += '\t${file.name}'
+	})
 })
 
-cli
-.command('close <file> <mode>')
+cli.command('close <file> <mode>')
 .action(function(file, mode){
 	console.log(file, mode)
 })
