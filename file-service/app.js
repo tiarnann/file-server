@@ -6,7 +6,7 @@ const mongoose = require('mongoose')
 mongoose.Promise = global.Promise
 
 /* Connect to database */
-mongoose.connect('mongodb://localhost:27017/file-server-test')
+mongoose.connect('mongodb://localhost:27017/file-server-database')
 	.then(()=>{
 		console.log('Connected to database.')
 	})

@@ -20,7 +20,7 @@ module.exports=(function(express, file){
 		const {fileId} = req.params
 		const {payload} = req.body
 			
-		File.find({'_id': fileId})
+		File.findOne({'_id': fileId})
 			.then((file)=>{
 				res.status(200)
 				res.send(file)
@@ -43,10 +43,11 @@ module.exports=(function(express, file){
 		console.log(newFile)
 
 		newFile.save()
+			.then((result)=>result.toJSON())
 			.then((result)=>{
 				res.status(200)
 				res.send({
-					'associatedFileId': result['_id']
+					'associatedFileId': result._id
 				})
 			})
 			.catch((err)=>{
