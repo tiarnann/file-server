@@ -32,8 +32,12 @@ module.exports=(function(auth,fetch){
 		const encryptedSession = await res.text()
 		const decrypted = await auth.decrypt(encryptedSession).with(password)
 		const parsed = JSON.parse(decrypted)
+
 		sessionKey = parsed['session-key']
-		identityTicketMap['user'] = sessionKey
+		identityTicketMap['user'] = parsed['session-key']
+		console.log('this')
+		console.log(parsed['session-key'])
+
 		return
 	}
 
@@ -50,7 +54,7 @@ module.exports=(function(auth,fetch){
 			"username": username,
 			"payload": JSON.stringify({sessionKey, identity})
 		}
-		console.log({sessionKey, identity})
+
 		connectMessage.payload = await auth.encrypt(connectMessage.payload).with(password)
 		const stringifiedPayload = JSON.stringify(connectMessage)
 
@@ -66,6 +70,7 @@ module.exports=(function(auth,fetch){
 	}
 
 	UserAuthentication.prototype.sessionKeyFor = function(identity){
+		console.log(identityTicketMap)
 		return identityTicketMap[identity]
 	}
 

@@ -1,38 +1,11 @@
-#!/usr/local/bin/node
-const config = require('../config.js')
-const workingDirectory = config.dir || '../tmp/'
-const ignoredExtensions = ['swp', 'swpx']
+// #!/usr/local/bin/node
+const repl = require('repl')
 
-const fs = require('fs')
-const watcher = require('../watcher')(workingDirectory,ignoredExtensions)
+const replServer = repl.start({prompt: 'afs-client >'})
 
-const UserAuth = new (require('../user-authentication'))(config.authUrl)
-const FSAPI = (require('../fs-api'))(fs,workingDirectory)
-
-const {username, password} = config
-
-
-UserAuth.login(username,password)
-.then(()=>{
-	const auths = config.identities.map(UserAuth.connect)
-	return Promise.all(auths)
-})
-.then(()=>{
-	config.identities.forEach((identity)=>{
-		const key = UserAuth.sessionKeyFor(identity)
-		FSAPI.set(identity,key)
-	})
+replServer.on('exit',()=>{
+	console.log('bye now |^_^|')
 })
 
-watcher.on('create',(fullPath, name, type, currentStat)=>{
-	console.log(name, type)
-	FSAPI.create(name)
-})
-watcher.on('update',(fullPath, name, type, currentStat)=>{
-	console.log(name, type)
-	FSAPI.update(name)
-})
-watcher.on('delete',(fullPath, name, type, currentStat)=>{
-	console.log(name, type)
-	FSAPI.delete(name)
-})
+
+

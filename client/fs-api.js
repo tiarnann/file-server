@@ -1,16 +1,25 @@
-module.exports=(function(fs,directory){
-	const identitySessionKeys = {
+const fetch = require('node-fetch')
+module.exports=(function(fetch,fs,directory){
+	const identitySessionKeys = {}
+	const urls = {
+		'file-server': 'http://localhost3002/api',
+		'directory-server': 'http://localhost:3001/api'
 	}
 
 	const FSAPI = function(){}
 	
 	FSAPI.prototype.set = function(identity,sessionKey) {
+		console.log(`identity ${identity}, sessionKey ${sessionKey}`)
 		identitySessionKeys[identity] = sessionKey
 	}
 
 	FSAPI.prototype.request = async function(identity,path, method, body=null, headers={}) {
+		console.log(identitySessionKeys)
 		const sessionKey = identitySessionKeys['user']
-		const ticket = identitySessionKeys['user']
+		const ticket = identitySessionKeys[identity]
+
+		console.log(ticket)
+		console.log(sessionKey)
 
 		/* Prepare message*/
 		if(body != null){
@@ -25,14 +34,22 @@ module.exports=(function(fs,directory){
 			body = message
 		}
 
-
+		const baseUrl = urls[identity]
 		const url = `${baseUrl}${path}`
 		const options = {method, headers, body}
 
 		return fetch(url,options)
 	}
 
-	FSAPI.prototype.request = async function(identity,path, method, body=null, headers={}) {
+	FSAPI.prototype.fetch = async function(id){
+		let url = `/files/`
+		
+		if(id){
+			url += id
+		}
+
+		return this.request(`directory-server`, url, `GET`)
+			.then(res=>res.json())
 	}
 
 	FSAPI.prototype.create = async function(filename){
@@ -81,4 +98,4 @@ module.exports=(function(fs,directory){
 	}
 
 	return new FSAPI()
-})
+}).bind(null,fetch)

@@ -1,10 +1,12 @@
 module.exports={
-	'dir':'client/tmp',
-	'authUrl':'http://localhost:3000/api',
 	'username':'test',
-	'password':'password',
-	'identities':[
-		'file-server',
-		'directory-server'
-	]
+	'password':'password'
 }
+
+/*
+AUTH_HOST='http://localhost/api'
+FILE_HOST='http://localhost/api'
+DIRECTORY_HOST='http://localhost/api'
+AUTH_PORT=3000
+FILE_PORT=3001
+DIRECTORY_PORT=3002*/
