@@ -1,24 +1,47 @@
-// #!/usr/local/bin/node
-const workingDirectory = '../tmp'
-const storage require('node-persist').initSync()
+#!/usr/local/bin/node
 const identities = ['file-server','directory-server']
+const Authentication = require('../user-authentication')
+const FileSystemAPI = require('../fs-api')
+const storage = require('node-persist'); storage.initSync()
 
+const workingDirectory = '../tmp'
 const cli = require('commander')
-cli.version('0.0.1')
+
+/*=Attempt to load previous user details=*/
+let options;
+const username = storage.getItemSync('username')
+const password = storage.getItemSync('password')
+/*=======================================*/
+
+const UserAuth = new Authentication('http://localhost:3000/api', options)
+const FSClient = new FileSystemAPI(UserAuth)
 
 cli
 .command('login <username> <username>')
 .action(function(username, password){
+	UserAuth.login(username, password)
+	.then(()=>{
+		const auths = identities.map(UserAuth.connect.bind(UserAuth))
+		return Promise.all(auths)
+	})
+	.then(()=>{
+		console.log('Logged in! Fetching some files...')
+	})
+	.catch(()=>{
+		console.log('Whoops! Those credentials must be incorrect')
+	})
 })
 
 cli
-.command('open <file> in <mode>')
+.command('open <file> <mode>')
 .action(function(file, mode){
+	console.log(file, mode)
 })
 
 cli
-.command('close <file> in <mode>')
+.command('close <file> <mode>')
 .action(function(file, mode){
+	console.log(file, mode)
 })
 
 cli.parse(process.argv)
