@@ -4,37 +4,48 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('authentication-server:server');
-var http = require('http');
+const app = require('../app');
+const debug = require('debug')('authentication-server:server');
+const http = require('http');
+const https = require('https');
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+const httpServer = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+httpServer.listen(port);
+httpServer.on('error', onError);
+httpServer.on('listening', onListening);
+
+
+// const httpsServer = https.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+/*httpsServer.listen(port);
+httpsServer.on('error', onError);
+httpsServer.on('listening', onListening)*/
 
 /**
  * Normalize a port into a number, string, or false.
  */
 
 function normalizePort(val) {
-  var port = parseInt(val, 10);
+  const port = parseInt(val, 10);
 
   if (isNaN(port)) {
     // named pipe
@@ -58,7 +69,7 @@ function onError(error) {
     throw error;
   }
 
-  var bind = typeof port === 'string'
+  const bind = typeof port === 'string'
     ? 'Pipe ' + port
     : 'Port ' + port;
 
