@@ -9,8 +9,16 @@ module.exports=(function(auth,fetch){
 	let password;
 	let sessionKey;
 	
-	const UserAuthentication = function(baseUrl){
+	const UserAuthentication = function(baseUrl,options){
 		this.authUrl = baseUrl
+		
+		if(options){
+			username = options.username
+			password = options.password
+			sessionKey = options.sessionKey
+
+			identityTicketMap = options.identityTicketMap
+		}
 	}
 
 	UserAuthentication.prototype.login = async function(_username, _password){
@@ -35,8 +43,6 @@ module.exports=(function(auth,fetch){
 
 		sessionKey = parsed['session-key']
 		identityTicketMap['user'] = parsed['session-key']
-		console.log('this')
-		console.log(parsed['session-key'])
 
 		return
 	}
@@ -58,7 +64,6 @@ module.exports=(function(auth,fetch){
 		connectMessage.payload = await auth.encrypt(connectMessage.payload).with(password)
 		const stringifiedPayload = JSON.stringify(connectMessage)
 
-
 		const res = await fetch(`${this.authUrl}/connect`,{
 			'method':'POST',
 			'body': stringifiedPayload,
@@ -66,6 +71,7 @@ module.exports=(function(auth,fetch){
 		})
 		const json = await res.json()
 		identityTicketMap[identity] = json.ticket
+
 		return
 	}
 
@@ -73,6 +79,11 @@ module.exports=(function(auth,fetch){
 		console.log(identityTicketMap)
 		return identityTicketMap[identity]
 	}
+
+	UserAuthentication.prototype.state = function(){
+		return {username,password,identityTicketMap}
+	}
+
 
 	return UserAuthentication
 

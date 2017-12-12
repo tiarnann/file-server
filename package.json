@@ -36,26 +36,27 @@
     "morgan": "~1.7.0",
     "node-fetch": "^1.7.3",
     "node-persist": "^2.1.0",
+    "opener": "^1.4.3",
     "redis": "^2.8.0",
     "serve-favicon": "~2.3.0"
   },
-  "config":{
-    "auth_server":{
-      "port":3000,
-      "secret":"Tdzb&vC6zve()^psaX$WSXz1w-je3!E@"
+  "config": {
+    "auth_server": {
+      "port": 3000,
+      "secret": "Tdzb&vC6zve()^psaX$WSXz1w-je3!E@"
     },
     "dir_server": {
-      "port":3001,
-      "secret":"H%#z%Kvfy80XCL#6NKSVBKo-MKEz@3yx"
+      "port": 3001,
+      "secret": "H%#z%Kvfy80XCL#6NKSVBKo-MKEz@3yx"
     },
     "file_server": {
-      "port":3002,
-      "secret":"KxqzOXYR&is(-2NDCKf3UAzf2d$_FyUP"
+      "port": 3002,
+      "secret": "KxqzOXYR&is(-2NDCKf3UAzf2d$_FyUP"
     },
     "root_directory": "afs-storage",
-    "redis":{
-      "port":6379,
-      "host":"127.0.0.1",
+    "redis": {
+      "port": 6379,
+      "host": "127.0.0.1",
       "socket": "/tmp/redis.sock"
     }
   }
