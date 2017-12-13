@@ -8,7 +8,7 @@
  */
 module.exports={
 	'port': 3000,
-	'file-servers':[
+	'fileServers':[
 		/*list of ips*/
 	], 
 	/* redis info for sessions*/

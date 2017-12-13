@@ -1,4 +1,4 @@
-module.exports=(function(express, fetch,file){
+module.exports=(function(express, file, fileServerApi){
 	const File = file
 	const router = express.Router();
 	
