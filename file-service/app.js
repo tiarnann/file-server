@@ -1,16 +1,19 @@
 const express = require('express');
 const path = require('path');
-const favicon = require('serve-favicon');
 const logger = require('morgan');
-const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose',{useMongoClient:true})
+const mongoose = require('mongoose')
 const db = mongoose.connection
+mongoose.Promise = global.Promise
 
-// /* Connect to database */
-// db.connect('',()=>{
-// 	console.log('Connected to database.')
-// })
+/* Connect to database */
+mongoose.createConnection('mongodb://localhost:27017/file-server-test', {useMongoClient:true})
+	.then(()=>{
+		console.log('Connected to database.')
+	})
+	.catch(()=>{
+		console.log('Error occurred while connecting to database.')
+	})
 
 /* Models */
 const fileModel = require('./models/file')(mongoose)
@@ -24,7 +27,6 @@ const app = express();
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
 
 /* Checking for database */
 // app.use((req, res, next)=>{
@@ -55,7 +57,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.send(err);
 });
 
 module.exports=app

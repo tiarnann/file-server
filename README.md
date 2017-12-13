@@ -7,6 +7,9 @@
 - [ ] Caching
 - [ ] Transactions
 - [ ] Lock Service
+- [ ] Client
+- [ ] Client apis in each service
+
 
 In the following sub-sections we will discuss each in turn.
 
