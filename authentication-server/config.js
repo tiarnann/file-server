@@ -13,7 +13,8 @@ module.exports=(function(){
 		'credentials': {},
 		'identity-secrets':{
 			'directory-server': process.env.npm_package_config_dir_server_secret,
-			'file-server':process.env.npm_package_config_file_server_secret
+			'file-server':process.env.npm_package_config_file_server_secret,
+			'transactions_server':process.env.npm_package_config_transactions_server_secret
 		}
 	}
 }())

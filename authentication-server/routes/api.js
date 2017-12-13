@@ -112,7 +112,8 @@ const api = (function(auth, express, User, db, identitySecrets){
 					const {identity} = decrypted
 					return identitySecrets[identity]
 				}).then(secret=>{
-					return auth.encrypt(sessionKey).with(secret).then(ticket=>ticket)
+					const newTicket = JSON.stringify({'session-key': sessionKey,'username': username})
+					return auth.encrypt(newTicket).with(secret).then(ticket=>ticket)
 				}).then(ticket=>{
 					return {'session-key': sessionKey,'ticket': ticket}
 				}).then(token=>{
