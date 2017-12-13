@@ -1,0 +1,10 @@
+echo "Going to create some keys and certs for the servers."
+echo "You must common name to localhost"
+echo "Starting in five seconds..."
+sleep 5
+
+for name in "file-server" "dir-server" "auth-server" "transactions-server"
+do
+	mkdir $name
+	openssl req -x509 -newkey rsa:2048 -keyout "./$name/$name-key.pem" -out "./$name/$name-cert.pem" -days 365
+done

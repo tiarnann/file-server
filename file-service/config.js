@@ -1,12 +1,9 @@
-/*
-	To be added:
-		httpServer info
-		certs for https
-		Information on other servers 
-		Replica sets
-		Redis store for sessions
- */
+const privateKey  = fs.readFileSync('../certs-keys/file-server/file-server-key.key', 'utf8')
+const certificate = fs.readFileSync('../certs-keys/file-server/file-server-cert.crt', 'utf8')
+const credentials = {key: privateKey, cert: certificate}
+
 module.exports={
+	'credentials': credentials,
 	'secret':process.env.npm_package_config_file_server_secret,
 	'redis':{
 		'port':6379,
