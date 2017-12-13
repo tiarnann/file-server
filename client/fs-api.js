@@ -1,13 +1,30 @@
 const fetch = require('node-fetch')
 const fs = require('fs')
 const path = require('path')
+const opener = require('opener')
 
-module.exports=(function(fetch, fs, path, directory){
+module.exports=(function(open, fetch, fs, path, directory){
 	const cwd = directory
 	const identitySessionKeys = {}
 	const urls = {
-		'file-server': 'http://localhost3002/api',
-		'directory-server': 'http://localhost:3001/api'
+		'file-server': `http://localhost:${process.env.npm_package_config_file_server_port}/api`,
+		'directory-server': `http://localhost:${process.env.npm_package_config_dir_server_port}/api`
+	}
+
+	const permissionFor = (access)=>{
+		let permission = fs.constants.F_OK
+
+		if(access.read){
+			return fs.constants.R_OK + fs.constants.X_OK
+		}
+		else if(access.write){
+			return fs.constants.R_OK + fs.constants.X_OK + fs.constants.W_OK
+		}
+		else if(access.lock){
+			return fs.constants.F_OK
+		}
+
+		return permission
 	}
 
 	const FSAPI = function(authentication){
@@ -18,20 +35,27 @@ module.exports=(function(fetch, fs, path, directory){
 		const sessionKey = this.authentication.sessionKeyFor('user')
 		const ticket = this.authentication.sessionKeyFor(identity)
 
-		console.log(ticket)
-		console.log(sessionKey)
-
 		/* Prepare message*/
-		if(body != null){
-			body['session-key'] = sessionKey
-			const encryptedPayload = auth.encrypt(body).with(sessionKey)
+		// if(body != null){
+		// 	body['session-key'] = sessionKey
+		// 	const encryptedPayload = auth.encrypt(body).with(sessionKey)
 
-			const message = {
-				ticket: ticket,
-				payload: encryptedPayload
-			}	
+		// 	const message = {
+		// 		ticket: ticket,
+		// 		payload: encryptedPayload
+		// 	}	
 
-			body = message
+		// 	body = message
+		// }
+		// 
+		if(body){
+			body = {
+				payload: body
+			}
+			body = JSON.stringify(body)
+
+
+			headers['Content-Type'] = 'application/json'
 		}
 
 		const baseUrl = urls[identity]
@@ -43,47 +67,129 @@ module.exports=(function(fetch, fs, path, directory){
 
 	FSAPI.prototype.fetch = async function(id){
 		let url = `/files/`
-		console.log(id)
+
 		if(id){
 			url += id
-			console.log(url)
 		}
 
 		return this.request(`directory-server`, url, `GET`)
 			.then(res=>res.json())
 			.then((fileArrayOrSingle)=>{
-				if(fileArrayOrSingle.length)
+				if(typeof fileArrayOrSingle.length == 'number')
 				{
 					return fileArrayOrSingle.map((file)=>{
 						file.data = Buffer.from(file.data)
 						const location = path.join(cwd, file.name)
-						console.log(location)
 						fs.writeFileSync(location, file.data)
-						fs.chmodSync(location, '0')
 						return file
 					})
+				}else {
+					// Single file
+					fileArrayOrSingle.data = Buffer.from(fileArrayOrSingle.data)
+					return fileArrayOrSingle
 				}
-
-				// Single file
-				console.log(fileArrayOrSingle.data)
-				fileArrayOrSingle.data = Buffer.from(fileArrayOrSingle.data)
-				return fileArrayOrSingle
 			})
 	}
 
+	FSAPI.prototype.open = async function(id, filename, mode){
+		const location = path.join(cwd, filename)
+		const exists = fs.existsSync(location)
+
+		if(!exists){
+			if(mode == 'write'){
+				console.log(`Creating file ${filename}...`)
+				fs.writeFileSync(location, '')
+				open(location)
+				return
+			} else {
+				throw new Error(`file: "${location}" does not exist`)
+			}
+		}
+
+		switch(mode){
+			case 'read':
+				console.log(`Opening "${filename}" for read.`)
+				open(location)
+				break
+			case 'write':
+				this.modify(id, filename, 'lock', true)
+				.then(response=>{
+					if(response.status == 423){
+						console.log('File already locked.')
+						throw new Error()
+					}
+				})
+				.then(()=>{
+					console.log(`Locking "${filename}" for write.`)
+					console.log(`Opening "${filename}" for write.`)
+					open(location)
+				})
+				.catch((err)=>{
+					console.log(`Can't open "${filename}" for write.`)
+				})
+				break
+			default: 
+				throw new Error(`unsupported file mode`)
+		}
+	}
+
+	FSAPI.prototype.close = async function(id, filename, mode){
+		const location = path.join(cwd, filename)
+		const exists = fs.existsSync(location)
+		const noPermissions =  permissionFor({})
+
+		if(!exists){
+			throw new Error(`file: "${location}" does not exist`)
+		}
+
+		switch(mode){
+			case 'read':
+				break
+			case 'write':
+				if(id){
+					this.update(id, filename).then(()=>{
+					})
+				} else {
+					this.create(filename).then(()=>{
+					})
+				}
+				break
+			default: 
+				throw new Error(`unsupported file mode`)
+		}
+	}
+
 	FSAPI.prototype.create = async function(filename){
-		console.log('create', filename)
 		this.resolve(filename)
 		.then((fileBuffer)=>{
-			console.log(filename, fileBuffer)
-			this.create()
+			return this.request(`directory-server`, `/files/`, `POST`, {name: filename, data: fileBuffer.toString()})
+		})
+		.then(()=>{
+			console.log(`Created file and pushed to server...`)
 		})
 	}
 
-	FSAPI.prototype.update = async function(id, filename){
+	FSAPI.prototype.update = async function(id,filename){
+		let url = `/files/`
+		let method = `POST`
+
+		if(id){
+			url += id
+			method = `PUT`
+		}
+
 		this.resolve(filename)
 		.then((fileBuffer)=>{
-			return this.request(`directory-server`, `/files/${id}`, `PUT`, {name: filename, data:fileBuffer})
+			return this.request(`directory-server`, url, method, {name: filename, data: fileBuffer.toString()})
+		})
+		.then(res=>res.json())
+		.then(json=>{
+			const location = path.join(cwd,filename)
+			const {data} = json
+			console.log(`Updated file data pushed to server...`)
+		})
+		.catch((err)=>{
+			console.log(err)
 		})
 	}
 
@@ -94,27 +200,28 @@ module.exports=(function(fetch, fs, path, directory){
 		})
 	}
 
-	FSAPI.prototype.modify = async function(id, filename, modifier,value){
-		this.resolve(filename)
-		.then(({value})=>{
-			return this.request(`directory-server`, `/files/${id}/modifier`, `PUT`)
+	FSAPI.prototype.modify = async function(id, filename, modifier, value){
+		return this.resolve(filename)
+		.then(()=>{
+			return this.request(`directory-server`, `/files/${id}/${modifier}`, `PUT`, {value})
 		})
 	}
 
-	FSAPI.prototype.resolve = async function(filename){
-		let arrayBuffer = []
-		const stream = fs.ReadStream(`${directory}/${filename}`)
-		
-		stream.on('data',(chunk)=>{
-			console.log('chunk', chunk)
-			arrayBuffer.push(chunk)
-		})
+	FSAPI.prototype.resolve = function(filename){
+		return new Promise((resolve, reject) => {
+			let arrayBuffer = []
+			const location = path.join(cwd, filename)
+			const stream = fs.ReadStream(location)
+			
+			stream.on('data',(chunk)=>{
+				arrayBuffer.push(chunk)
+			})
 
-		stream.on('end',()=>{
-			console.log('end',Buffer.from(arrayBuffer))
-			return Buffer.concat(arrayBuffer)
-		})
+			stream.on('end',()=>{
+				resolve(Buffer.concat(arrayBuffer))
+			})
+		});
 	}
 
 	return FSAPI
-}).bind(null,fetch,fs, path)
+}).bind(null,opener,fetch,fs, path)

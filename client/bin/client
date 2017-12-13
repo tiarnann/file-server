@@ -3,23 +3,27 @@ const os = require('os')
 const temp = os.tmpdir()
 const home = os.homedir()
 
+// Directory and server ids //
 const directory = `${home}/${process.env.npm_package_config_root_directory}`
-const identities = ['file-server','directory-server']
+const identities = ['file-server','directory-server','transactions-server']
 
-const storage = require('node-persist'); storage.initSync({'dir': temp + '/afs-storage'})
+// Custom modules //
 const FileSystemAPI = require('../fs-api')(directory)
 const Authentication = require('../user-authentication')
-let options = storage.getItemSync('options')
 
+// Local storage //
+const Cache = require('node-persist'); Cache.initSync({'dir': temp + '/afs-storage'})
+let options = Cache.getItemSync('options')
+
+// CLI, Auth and FileSystemClient //
 const cli = require('commander')
-const UserAuth = new Authentication('http://localhost:3000/api', options)
+const UserAuth = new Authentication('http://localhost:3000/api', {})
 const FSClient = new FileSystemAPI(UserAuth)
-let currentFiles = storage.getItemSync('files')
 
-//	Logging client in	
-//	- Logs in
-//	- Fetches all files
-//	- Caches them locally
+// Retrieve cached files //
+let currentFiles = Cache.getItemSync('files')
+
+// CLI Login Command //
 cli.command('login <username> <username>')
 .action(function(username, password){
 	UserAuth.login(username, password)
@@ -34,8 +38,15 @@ cli.command('login <username> <username>')
 	})
 	.then((files)=>{
 		console.log(`${files.length} file(s) retrieved...`)
-		storage.setItemSync('files',files)
-		storage.setItemSync('options', UserAuth.state())
+		
+
+		const fileMap = files.reduce((cacheFileMap, file)=>{
+			cacheFileMap[file.name] = file
+			return cacheFileMap
+		},{})
+
+		Cache.setItemSync('files', fileMap)
+		Cache.setItemSync('options', UserAuth.state())
 	})
 	.catch((err)=>{
 		console.log('Whoops! Something went wrong...')
@@ -43,73 +54,69 @@ cli.command('login <username> <username>')
 	})
 })
 
-//	Logs client in	
-//	- Logs in
-//	- Fetches all files
-//	- Caches them locally
-cli.command('list').action(function(){
-	const files = storage.getItemSync('files')
-	console.log(`total ${files.length}`)
-	files.forEach((file,i)=>{
-		let line = ''
-		line += (file.accessControl.read)?'r-':'-'
-		line += (file.accessControl.write)?'w-':'-'
-		line += (file.accessControl.lock)?'l':'-'
-		line += `\t${i+1}\t${(new Buffer(file.data)).byteLength}B\t${file.name}\t`
-		console.log(line)
-	})
-})
-
+// CLI Open Command //
 cli.command('open <file> <mode>')
 .action(function(file, mode){
-	const stored = currentFiles.filter(stored=> {return stored.name == file })[0]
-
-	if(!stored){
-		console.error(`${mode} mode not recognised`)
+	const stored = currentFiles[file] || {}
+	
+	if(stored);
+	else if(mode == 'read') {
+		console.error(`file does not exist`)
+		process.exit()
 	}
 
 	switch(mode){
 		case 'read':
-		console.log('read')
-		console.log(stored)
-		FSClient.fetch(stored._id)
-			.then((serverFile)=>{
-				console.log(serverFile)
+			FSClient.open(stored._id, stored.name, mode)
+			.then(res=>{
+				// console.log('Opening...')
 			})
 			.catch((err)=>{
-				console.error(err)
+				console.log(err)
 			})
 		break
 		case 'write':
-		console.log('read')
-		console.log(stored)
-		FSClient.fetch(stored._id)
-			.then((serverFile)=>{
-				console.log(serverFile)
+			const id = stored._id || null
+			FSClient.open(id, file, mode)
+			.then(res=>{
+				// console.log('Opening...')
 			})
 			.catch((err)=>{
-				console.error(err)
+				console.log(err)
 			})
-		break
 		break
 		default:
 			console.error(`${mode} mode not recognised`)
+			process.exit()
 	}
 })
 
-cli.command('close <file>')
-.action(function(file){
-	const stored = currentFiles.filter(stored=>stored.name == stored)
+// CLI Close Command //
+cli.command('close <file> <mode>')
+.action(function(file, mode){
+	const stored = currentFiles[file] || {}
 
-	console.log(stored)
-	if(!stored){
-		console.error(`${file} doesn't exist`)
-		return
+	if(stored);
+
+	switch(mode){
+		case 'read':
+		console.log('There is no need to close after ')
+		break
+		case 'write':
+			const id = stored._id || null
+			const name = stored.name || file
+			FSClient.close(id, name, mode)
+			.then(res=>{
+				// console.log('Closing...')	
+			})
+			.catch((err)=>{
+				console.log(err)
+			})
+		break
+		default:
+			console.error(`${mode} mode not recognised`)
+			process.exit()
 	}
-	
-	// if(!stored.accessControl.lock){
-	// 	console.error(`${file} isn't locked`)
-	// }
 })
 
 cli.parse(process.argv)

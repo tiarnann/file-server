@@ -15,9 +15,9 @@ module.exports=(function(auth,fetch){
 		if(options){
 			username = options.username
 			password = options.password
-			sessionKey = options.sessionKey
+			sessionKey = options.sessionKey 
 
-			identityTicketMap = options.identityTicketMap
+			identityTicketMap = options.identityTicketMap || {}
 		}
 	}
 
@@ -28,7 +28,6 @@ module.exports=(function(auth,fetch){
 		const loginMessage = {username, password}
 
 		const stringifiedPayload = JSON.stringify({username, password})
-		console.log(stringifiedPayload)
 		const res = await fetch(`${this.authUrl}/login`,{
 			'method':'POST',
 			'body': stringifiedPayload,
@@ -76,7 +75,6 @@ module.exports=(function(auth,fetch){
 	}
 
 	UserAuthentication.prototype.sessionKeyFor = function(identity){
-		console.log(identityTicketMap)
 		return identityTicketMap[identity]
 	}
 
