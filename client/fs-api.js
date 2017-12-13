@@ -8,7 +8,8 @@ module.exports=(function(open, fetch, fs, path, directory){
 	const identitySessionKeys = {}
 	const urls = {
 		'file-server': `http://localhost:${process.env.npm_package_config_file_server_port}/api`,
-		'directory-server': `http://localhost:${process.env.npm_package_config_dir_server_port}/api`
+		'directory-server': `http://localhost:${process.env.npm_package_config_dir_server_port}/api`,
+		'transactions-server': `http://localhost:${process.env.npm_package_config_transactions_server_port}/api`
 	}
 
 	const permissionFor = (access)=>{
@@ -36,27 +37,24 @@ module.exports=(function(open, fetch, fs, path, directory){
 		const ticket = this.authentication.sessionKeyFor(identity)
 
 		/* Prepare message*/
-		// if(body != null){
-		// 	body['session-key'] = sessionKey
-		// 	const encryptedPayload = auth.encrypt(body).with(sessionKey)
-
-		// 	const message = {
-		// 		ticket: ticket,
-		// 		payload: encryptedPayload
-		// 	}	
-
-		// 	body = message
-		// }
-		// 
 		if(body){
-			body = {
-				payload: body
-			}
-			body = JSON.stringify(body)
-
-
 			headers['Content-Type'] = 'application/json'
+			body['username'] = this.authentication.username()
+			body['session-key'] = sessionKey
+			const encryptedPayload = await this.authentication.encrypt(body)
+
+			const message = {
+				ticket: ticket,
+				payload: encryptedPayload
+			}
+			
+			body = JSON.stringify(message)
+			console.log(message)
+		} else {
+			headers['ticket'] = ticket
+			headers['username'] = this.authentication.username()
 		}
+
 
 		const baseUrl = urls[identity]
 		const url = `${baseUrl}${path}`
@@ -221,6 +219,14 @@ module.exports=(function(open, fetch, fs, path, directory){
 				resolve(Buffer.concat(arrayBuffer))
 			})
 		});
+	}
+
+	FSAPI.prototype.startTransaction = function(){
+		return this.request(`transactions-server`, `/transactions/`, `POST`)
+	}
+
+	FSAPI.prototype.deleteTransaction = function(id){
+		return this.request(`transactions-server`, `/transactions/${id}`, `DELETE`)
 	}
 
 	return FSAPI

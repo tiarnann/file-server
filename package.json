@@ -37,6 +37,7 @@
     "node-fetch": "^1.7.3",
     "node-persist": "^2.1.0",
     "opener": "^1.4.3",
+    "package.json": "^2.0.1",
     "redis": "^2.8.0",
     "serve-favicon": "~2.3.0"
   },
@@ -65,4 +66,3 @@
     }
   }
 }
-

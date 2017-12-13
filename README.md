@@ -1,89 +1,176 @@
-# Distributed Transparent File Access
+# CS4400 Internet Applications Assignment 3: File-Server
 
-## Todo
+## Features
+- [x] Distributed Transparent File Access
 - [x] Security Service
-- [ ] Directory Service
-- [ ] Replication
-- [ ] Caching
-- [ ] Transactions
-- [ ] Lock Service
-- [ ] Client
-- [ ] Client apis in each service
+- [x] Directory Service
+- [x] Replication
+- [x] Caching
+- [x] Transactions
+- [x] Lock Service
 
 
-In the following sub-sections we will discuss each in turn.
+## Demo
+* Running all servers
+[]()
 
-In implementing any particular component, you will of course find that there are many possible designs. It is important that whatever designs you chose should fit well with your overall design: your components must ultimately work together and will be assesed on this.
+* Logging in, fetching files and caching them locally
+[]()
 
-For example, (which may make sense to you only having reviewed general material on file system design) it would be somewhat wasteful to provide a sophisticated caching strategy in file servers if clients access it via an upload/download model and have very little requirement for server side caching. However, such a scheme is effectively required if an NFS style (a form of file system design based on propogation of reads and writes to the file server) client/server interaction is planned.
+* Fetch and cache
+[]()
 
-Your components must be fully functional. For example a directory service must be capable of maintaining an updateable dataset, and it is recommened that an appropriate datastore such as a MySql database is used. A file server component must be capable of persistent storage of files, and provide appropriate distributed access to file contents.
+* Open, Closing Functions
+1. Read Mode
+[]()
 
-Your modules must also provide appropriate administrative interfaces. For example, a security service must provide a capacity to add and remove accounts and provide access control (more on these kinds of requirements later as each component is discussed in detail).
+2. Write Mode
+[]()
 
-In the following sections we discuss each necessary feature in turn briefly, before providing some advice on Haskell based service development to get you started. Haskell based REST services is the recommended technical architecture, but you are free to use any other technology stack you choose. Note though that it is not acceptable to rely on the existing implementation of a feature by a technology you choose.
+* Locking - From another users point-of-view a file is locked to another user.
 
+## Overview
 ### Distributed Transparent File Access
-This is the core of any distributed file system and will consist of a server which provides access to files on the machine on which it is executed and a client side file service proxy that provides a language specific interface to the file system. This system should provide functionality compatible with either an upload/download, or a NFS style access model. It should exhibit a layered design to simplify its extension to support other features as the file systems functionality grows.
+1. Flat file system
 
-A client side file system proxy should be provided as a lirbary, that hides all access to the file system behind a simple language specific mechanism. Henceforth, this component will be referred to simply as the client proxy. The client proxy should be packaged as a library and you should implement a sample client side application that makes use of ths interface (such as a simple text editor for example).
 
 ### Security Service
-All interactions between the various servers of your distributed file system should be protected so that third parties cannot spy on the content of messaging crossing the net work, or worse still, damage or corrupt this data. There follows a description of a 3 key security model that can be used to mutually authenticate clients and severs. If you choose to implement this scheme, you should insure that the key system is used to encrypt messages between system components so that a third party cannot read the content. However, the strength of encryption or specific scheme used is not a concern.
+1. 3-Key Authentication
+2. All traffic is encrypted
 
-The model assumes a trusted authentication server (AS) and performs encryption based on three keys. The server stores two sets of keys. The first set are derived from the clients passwords and are used to encrypt communication between the AS and its clients. The second set are the keys associated with servers that clients wish to communicate with. You will probably need to read the following a few times…
+#### Event: User Login
+```
 
-As an example of a scheme, the client first requests access from the authentication server. It performs this by creating a login request message, encrypting (using a symmetric encryption scheme) it with the a key derived from the password provided by the user, and passing this coupled with the user identity to the AS. The AS uses the password on record for this user to unencrypt the message and verifyies its content to establish authentication. (A plausible variation is to pass the user id encrypted using the password. The AS would maintain a list of username, encrypted username tuples in storage for matching). The exact scheme you use is up to you, so long as your system is capable of establishing authentication for distinct username/password combinations.
+[t1]	User ----> Authentication Server
+			{username, password} 
 
-The AS responds with a token comprised of a ticket, a session key, the identity of the server the ticket is for, and a timeout period for the ticket. The ticket contains a copy of the session key. The session key is a key generated at random (ie. when the client requests to login) to be used to encrypt and decrypt communication between the client and server. The ticket is itself encrypted with a server encryption key, which is known only by the AS and the server the client wants to contact. Thus only the server can decrypt the ticket. The token is encrypted with a key derived from the client’s password. Thus, the token can only be decrypted by the client (assuming the password is secure).
+[t2]	User <---- Authentication Server
+			{session-key} 
 
-So, assuming successful logon, the client receives a token encrypted with a key derived from the password passed to the AS. The client then decrypts the token and extracts the various parts (ticket, and session key being the most important). It cannot decrypt the ticket as the ticket is encrypted with a key known only to the server and the AS. It does have an unencrypted copy of the session key however.
+Session-key is encrypted with the users password
+```
 
-To send messages to the server the client now uses the session key to encrypt all messages before sending them to the server. It sends the ticket (without encrypting it) to the server along with each request (i.e. request = message encrypted + ticket).
+#### User Connect to Server-X
+```
 
-The server, on receiving the request, decrypts the ticket to obtain the session key. It then decrypts the message with that session key. It performs the required action, assuming successful decryption, generates a response and encrypts the response with the session key. The client can decrypt the response as it knows the session key.
+[t1]	User ----> Authentication Server
+			{Username, Payload} 
 
-That’s it! Think about why this model is secure. Note that the key to it is that the session key, generated on the fly, is never exposed to the world in an unencrypted form. It is passed back to the client encrypted with a key generated from the users password. It is also placed in the ticket, which itself is encrypted with the servers key, and thus which can only be decrypted by the server. Clients cannot fake knowledge of the session key because it is never in the open. Servers only get the session key if they can decrypt the ticket. The session key, and the two keys used to encrypt it for the client and server respectively insure that if a message can be decrypted with the session key contained in a ticket passed with the message, then the message was generated by the real client, and was decrypted by the real server. Only the real server can decrypt the ticket, and decryption of the ticket is necessary before the message can be decrypted.
+Payload is encrypted with the users session-key. This is stored on the Authentication Server and can be looked up with their username.
+Payload = {
+	identity: 'Server-X'
+}
 
-Note: In a real world system, the authentication server would maintain a set of server keys for the various server components (it would not be presumed that a single server key would be used to encrypt tickets generated for clients). You may assume a single shared secret shared by all servers and the authentication server to simplify the scheme.
+[t2]	User <---- Authentication Server
+			{Token}
+Token = {
+	ticket:'object containing the username and session-key of the user encrypted with Server-Xs secret key,
+	session-key: 'users session key'
+}
+
+The ticket is then used to interact with Server-X
+
+```
+
+#### Event: Interacting with Server-X
+```
+
+[t1]	User ----> Server-X
+			{Ticket, Payload} 
+
+Payload is encrypted with the users session-key. The ticket contains the users session-key. Server-X can decrypt the ticket, extract the session-key and then use the extracted key to then decrypt the payload.
+
+[t2]	User <---- Authentication Server
+			{Payload}
+
+The response payload is also encrypted with the users session-key.
+
+```
 
 ### Directory Service
-The directory service is responsible for mapping human readable, global file names into file identifiers used by the file system itself. A user request to open a particular file X should be passed by the client proxy to the directory server for resolution. The returned file identifier should identify the server actually holding the file (or perhaps, servers, if you have decided to expose replication to client proxies) and the name of the file on that server. It is perhaps best if the directory server maps directories to server:directory identifiers : that is, the directory server should not remap actual file names. This is simply for scale – the are generally a lot more files than directories in a file system,and managing the location of files is probably best done on a per directory basis, implying that a directory service that works at the level of directory mappings is probably sufficient. An alternative model involves storing all files in a file server in a flat file system (i.e. each file server provides a single directory in effect), requiring the directory server to maintain mapping of full file names to server:filename mappings. You may choose either scheme, or a variant of your own devising.
-
-### Replication
-We examine replication in detail in lectures, and when we do so, you should think about the type of file usage that occurs in a typical file system. For example, multiple users do not simultaneously modify most files. So very tight synchronisation is probably not necessary – locking or transactions will probably be acceptable for those cases that do. Your task is to implement an appropriate replicatino model for file access across selected file servers (you should demonstrate operation with three or more).
-
-A scheme based on the gossip architecture is possible, but a model based on a primary copy will most likely be good enough. If you choose to implement a gossip style solution, and an NFS style file system model is being implemented, then replicas should talk frequently to each other. If an upload/download model is in place then communication need only occur when files are closed!
-
-### Caching
-Caching is a vital element of any file system design that is required to give good performance and scale. Put simply, the purpose of caching is to make files quicker to access. On the basis that accessing memory is fast, disk access is slower, and network access to a file server is very slow relatively, an effective caching strategy will seek to maintain consistent copies of file server data (i.e. the files) as close to the client proxy as possible. In concrete terms this means maintaining a copy in memory on the client if possible, on disk at the client if possible, in memory on the server if possible. These are the three sensible locations where we might consider implementing a caching solution. We must always bear in mind, however, that caching functionality, like all functionality, carries a runtime overhead and so there must be, on balance, overall performance benefits to implementing caching at a particular point that justify the extra runtime overhead, and the cost of designing and implementing a solution.
-
-For example, consider an upload/download model used in very large scale file systems such as AFS: is caching in memory on the server side useful here? With this model, clients interact with the server only twice during the use of a particular file: first, when the file is opened it is copied to the client, and second, when the file is closed it is copied back to the server. Since files are generally only accessed by one user at a time, the likelihood of another user accessing this file is low, and therefore there appears to be no advantage in having the file to hand in memory on the server. That said, it is common in such large scale file systems for the relatively few files that are accessed by more than one user to be read only in the main. Such files are good candidates for caching.
-
-It is likely that in implementing your solution, you will find it useful to cache in memory on the client: with an NFS style model you reduce network access with reads, and with AFS it is in fact mandatory. You should consider whether there is anything to be gained in caching not whole files, but parts of files: if you cache whole files then you may find your solution will prove cumbersome with large files. Generally, users access only small parts of files – often a small change is made to a paragraph in a chapter for example and no further access is made. Thus, caching at a smaller granularity than the file is sometimes a useful technique: remember the point of caching is to quicken access times, and reduce network access.
-
-The key concern in devising a caching design, is to consider cache invalidation in the face of multiple concurrent clients reading and writing from the same file. If client A reads file X, and client B writes to file X, then client A's cache copy should be invalidated promptly under normal circumstances. To fail to do so allows inconsistent state to emerge in a system. Invalidation may of course be based on polling or push.
-
-### Transactions
-There are two levels to providing a transaction service in a distributed file system. First, it is necessary to extend your file server to support transactional modification of files on a single file server. This is probably best achieved in this project via a technique known as shadowing. Second, the concept of a transaction involving many files, possibly on many different file servers must be supported. This is probably best achieved via a separate and distinct transaction service. This service would employ a logging approach to record the steps of a distributed transaction, keeping track of which file servers and files are part of the transaction.
-
-A reasonably straightforward algorithm is sufficient to implement distributed transactions for the purposes of this project. The algorithm works as follows:
-
-If a set of transactional changes are to be performed, the client proxy signals this by requesting that the transaction server begin a transaction. It must then delegate all file modifications to this server rather than seek to perform the changes by communicating directly with the relevant file servers. It must signal the end of the transaction when all required changes have been communicated.
-
-The transaction server begins a transaction by asking each server that becomes part of the transaction (by virtue of being asked to perform file modifications) to enter a “ready to commit” state. Each server performs necessary file updates transactionally (i.e. most likely to the shadow copy of the file). When ready to commit, they inform the transaction server. If all servers respond positively that they are ready-to-commit when asked, then the first phase is over. The transaction server records this fact in the log. At this point, even if the transaction server fails, the transaction can be completed when it restarts. If one or more servers fail to respond positively, then the transaction is aborted. The transaction server requests each constituent server to commit (or abort). When all respond, the transaction is complete.
-
-If servers fail during step 3, so that the transaction is not completed at all nodes, the transaction server must continue to try to get the failed nodes to commit. Each of those nodes have already indicated (when responding positively at step 2) that they could commit. This implied that they could commit the transaction if subsequently asked to, even if they crash or become disconnected/partitioned during that process. Therefore, when contact is re-established with the failed server, the commit process can be restarted. If the server crashed, then the transaction will be recorded and thus recoverable in a ready to commit state. Note that if a server never restarts or its data is irrecoverably trashed, then the transaction cannot be completed - you do not need to worry about this pathalogical state for the purposes of this project work.
-
-Your system should employ a variation on this basic algorithm. In general terms your system might work as follows. The client proxy will provide a simple API as an adjunct to (or perhapos integrated with) the basic file API to allow clients create and commit or abort transactions. When a transaction is begun, a distributed transaction server is contacted and a transaction identifier is generated. All file modifications subsequently made that are associated with this identifier are performed as part of a distributed transaction. When a file is opened, the transaction server is informed and it records which server and file is being opened. That server is now part of the transaction and will be asked later to commit the changes by the transaction server. Each transactional modification will be performed at the appropriate file server via shadowing. Eventually, the client will either abort or commit the transaction. In each case, the transaction server is informed and completes the processing by implementing the algorithm above in partnership with the file servers.
-
-This general design has its faults – improve on it if you can.
+Supports
+1. Get a single file
+2. Get all files
+3. Create a file
+4. Update a file
+5. Locking
+[Directory Service API can be seen here](http://google.com)
 
 ### Lock Service
-The lock service is an important user tool. Certain classes of user applications will modify (deliberately) the same files in a distributed file system. Such tools will need exclusive access to the files they modify. To provide this exclusive access, the client proxy can make use of a lock server. This server simply holds a semaphore for each file it is told about. Any client wishing to access a file could simply ask for access from the lock server. Providing all other clients do the same, it can be sure that ot has exclusive access when access is granted.
+The service is integrated into the directory service. See the api above.
+Each time a file is opened for write, the file is then locked so no one can write to it. Once the close has been called the file has been updated, it is then unlocked. To ensure the no body writes a file that they were not supposed to the permissions of the file are changed on-disk for all groups and the server will reject any requests that don't abide by the permissions.
 
-This service could be exposed (via the client proxies user API) to user applications. Alternatively, it could be provided as an attribute for particular directories. If, for example, the directory service was designed to allow particular directories to be marked as lockable, then the client proxy could be designed to use the locking service for access to files in that directory. This would mean that clients need not be aware of locking but would still benefit from it – ie. Transparency.
+### Transactions Service
+Transactions can be initiated with this service. Transactions are stored with info of the user who started it. The service stores files affected by the transactions in a `shadow-file` collection - shadow files are copies which the actions are performed on instead of the actual files themselves - no files are affected by commits of a transaction till the transaction is completed with the necessary api call.
 
-There are many possible schemes – use you imagination – but be sure to have valid reasons in mind when you finally settle on one or more solutions.
+Supports
+1. Start a transaction
+2. Commit to transaction
+3. Delete a transaction
+4. Update a file
+5. Locking
 
-One for the advanced – consider how applications could be provided with support to enable them to usefully share files simultaneously. For example, an event service could let applications know when someone else modifies a file they are modifying – what would this be useful for? A groupware lock service?
+[Transaction Service API can be seen here](http://google.com)
+
+### Replication
+Replication is integrated into the databases using [Replica Sets](https://docs.mongodb.com/manual/replication/). This provides that there is always a server.
+The setup looks like this...
+```
+			[  Primary	]
+	 	  	/			\		
+		   /             \
+ [Secondary]<-Heartbeat->[Secondary]
+```
+
+Writes and reads are done through the primary.
+In the case that the primary disconnects, a vote will be made between the secondaries and one will be elected the new primary. To make the following setup...
+```
+ [Primary]<-Heartbeat->[Secondary]
+```
+
+### Caching
+Caching is simply done by caching files locally on the clients's disk. 
+Each time new files are fetched from the directory server the files on disk are updated.
+
+## Installation, Configuration and Running
+### Dependencies
+* [Redis server](https://redis.io)
+* [MongoDB](https://www.mongodb.com)
+* [NodeJS](https://nodejs.org/en/download/) Note: This was built with the LTS version.
+
+### Installing
+Run the following in the root directory
+```bash
+	npm install
+```
+
+### Configuration
+#### HTTPS
+You'll want to run the key and cert generator, in the project directory. This will create the https certificates and private keys for each server.
+```bash
+	./key-generator
+```
+
+#### Redis
+You'll want to set the port of your redis server inside package.json.
+```json
+    "redis": {
+      "port": 8080,
+      "host": "yourhostname",
+      "socket": "/someplace/whereever.sock"
+    }
+```
+
+After this when running, make sure this server is running with
+```
+	redis-server /location/redis.conf
+```
+#### MongoDB
+You'll want to set the urls to your dbs inside the package.json. 
+Same as with redis, obviously make sure to have `mongod` running in the background.
+
+### Running
+Now that you've everything setup, you can run the all the servers with
+```
+	npm start
+```

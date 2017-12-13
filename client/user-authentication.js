@@ -13,11 +13,11 @@ module.exports=(function(auth,fetch){
 		this.authUrl = baseUrl
 		
 		if(options){
-			username = options.username
-			password = options.password
-			sessionKey = options.sessionKey 
+			username = options.username || ''
+			password = options.password || ''
 
 			identityTicketMap = options.identityTicketMap || {}
+			sessionKey = identityTicketMap['user'] || ''
 		}
 	}
 
@@ -80,6 +80,14 @@ module.exports=(function(auth,fetch){
 
 	UserAuthentication.prototype.state = function(){
 		return {username,password,identityTicketMap}
+	}
+
+	UserAuthentication.prototype.username = function(){
+		return {username,password,identityTicketMap}
+	}
+
+	UserAuthentication.prototype.encrypt = function(payload){
+		return auth.encrypt(payload).with(sessionKey)
 	}
 
 
