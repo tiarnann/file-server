@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start-auth": "DEBUG=myapp:* db='mongodb://localhost:27017/file-server-auth' node ./authentication-server/bin/www",
+    "start-auth": "DEBUG=* db='mongodb://localhost:27017/file-server-auths' node ./authentication-server/bin/www",
+    "start-file": "DEBUG=* db='mongodb://localhost:27017/file-server-test' node ./file-service/bin/www",
     "test": "mocha ./**/*-test.js"
   },
   "author": "",
