@@ -53,6 +53,10 @@
       "port": 3002,
       "secret": "KxqzOXYR&is(-2NDCKf3UAzf2d$_FyUP"
     },
+    "transactions_server": {
+      "port": 3003,
+      "secret": "bBUa*(^0923jkas*9pGspAS7gdas7d-"
+    },
     "root_directory": "afs-storage",
     "redis": {
       "port": 6379,
@@ -61,3 +65,4 @@
     }
   }
 }
+
