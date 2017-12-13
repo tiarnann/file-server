@@ -121,6 +121,18 @@ cli.command('close <file> <mode>')
 	}
 })
 
+cli.command('rm <file>')
+.action(function(file, mode){
+	FSClient.delete(file)
+	.then(res=>res.json())
+	.then((data)=>{
+		console.log(`File ${file} deleted.`)
+	})
+	.catch(()=>{
+		console.log(`Error occurred deleting ${file}.`)
+	})
+})
+
 cli.command('transaction start')
 .action(function(file, mode){
 	FSClient.startTransaction()

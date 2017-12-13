@@ -192,10 +192,12 @@ module.exports=(function(open, fetch, fs, path, directory){
 	}
 
 	FSAPI.prototype.delete = async function(filename){
-		this.resolve(filename)
-		.then((fileBuffer)=>{
-			return this.request(`directory-server`, `/files/${id}`, `DELETE`)
-		})
+		return this.request(`directory-server`, `/files/${id}`, `DELETE`)
+				.then(res=>{
+					const location = path.join(cwd, filename)
+					fs.unlinkSync(location);
+					return res
+				})
 	}
 
 	FSAPI.prototype.modify = async function(id, filename, modifier, value){
