@@ -26,6 +26,7 @@ module.exports=(function(express, file, accessControl, FileAPIService,){
 		File.find({})
 			.then((fileArray)=>fileArray.map(file=>file.toJSON()))
 			.then(files=>{
+				// Map each file and fetch its data from the file server //
 				const filesWithData = files.map(file=>{
 					return FileAPIService.read(file.associatedFileId)
 						.then(response=>response.json())
@@ -62,6 +63,9 @@ module.exports=(function(express, file, accessControl, FileAPIService,){
 
 		File.findById(fileId)
 			.then(file=>{
+				file = file.toJSON()
+
+				// Fetch the files data from the file server //
 				return FileAPIService.read(file.associatedFileId)
 					.then(response=>response.json())
 					.then(json=>{
@@ -71,7 +75,6 @@ module.exports=(function(express, file, accessControl, FileAPIService,){
 					})
 			})
 			.then(file=>{
-				console.log(file)
 				res.status(200)
 				res.send(file)
 			})
@@ -103,6 +106,7 @@ module.exports=(function(express, file, accessControl, FileAPIService,){
 			})
 			.then(result=>{
 				const doc = result.toJSON()
+				doc.data = data
 				res.status(200)
 				res.send(doc)
 			})
@@ -127,32 +131,17 @@ module.exports=(function(express, file, accessControl, FileAPIService,){
 		const {username} = req.headers
 		const {data, name} = payload
 
-		File.findOne({associatedFileId: fileId})
+		File.findById(fileId)
 		.then(file=>{
-			res.status(200)
-			res.send()
+			return FileAPIService.update(file.associatedFileId, {data})
 		})
-		// AccessControl.find({username, associatedFileId: fileId})
-		// .then((control)=>{
-		// 	if(write == false){
-		// 		const err = new Error(`user doesn't have read permissions`)
-		// 		err.status = 423
-		// 		throw err
-		// 		return
-		// 	}
-		// })
-		// .then(()=>{
-		// 	return FileAPIService.update(fileId, data)
-		// })		
-		// .then(res=>res.json())
-		// .then(json=>json.associatedFileId)
-		// .then(associatedFileId=>{
-		// 	return File.updateOne({associatedFileId}, {name})
-		// })
-		// .then(result=>{
-		// 	res.status(200)
-		// 	res.send(result)
-		// })
+		.then(()=>{
+			return File.findByIdAndUpdate(fileId, {'accessControl':{'lock':false}, 'modifiedAt': Date.now()})
+		})
+		.then(result=>{
+			res.status(200)
+			res.send(result)
+		})
 		.catch((err)=>{
 			res.send(err.status || 500)
 			res.send(err.message || `couldn't write file`)
@@ -172,18 +161,21 @@ module.exports=(function(express, file, accessControl, FileAPIService,){
 		const {fileId} = req.params
 		const {username} = req.headers
 
-		FileAPIService.delete(fileId)
-			.then(json=>{
-				return File.remove({associatedFileId:fileId})
-			})
-			.then(result=>{
-				res.status(200)
-				res.send(result)
-			})
-			.catch(()=>{
-				res.send(500)
-				res.send(`couldn't write file`)
-			})
+		File.findById(fileId)
+		.then((file)=>{
+			return FileAPIService.delete(file.associatedFileId)
+		})
+		.then(json=>{
+			return File.remove({_id: fileId})
+		})
+		.then(result=>{
+			res.status(200)
+			res.send(result)
+		})
+		.catch(()=>{
+			res.send(500)
+			res.send(`couldn't write file`)
+		})
 	})
 
 	return router
