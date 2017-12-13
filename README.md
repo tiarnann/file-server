@@ -11,23 +11,18 @@
 
 
 ## Demo
-* Running all servers
-[]()
-
 * Logging in, fetching files and caching them locally
-[]()
-
-* Fetch and cache
-[]()
+![Login Cache](https://github.com/tiarnann/file-server/blob/master/docs/gifs/login-cache.gif?raw=true)
 
 * Open, Closing Functions
-1. Read Mode
-[]()
-
-2. Write Mode
-[]()
+Write Mode + Persisting Files
+![Write Mode](https://github.com/tiarnann/file-server/blob/master/docs/gifs/pushed-files-persist.gif?raw=true)
 
 * Locking - From another users point-of-view a file is locked to another user.
+![Locking](https://github.com/tiarnann/file-server/blob/master/docs/gifs/locking.gif?raw=true)
+
+* Metadata being updated
+![Locking](https://github.com/tiarnann/file-server/blob/master/docs/gifs/updating-metadata.gif?raw=true)
 
 ## Overview
 ### Distributed Transparent File Access
