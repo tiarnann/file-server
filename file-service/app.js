@@ -4,20 +4,41 @@ const favicon = require('serve-favicon');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose',{useMongoClient:true})
+const db = mongoose.connection
 
-const index = require('./routes/index');
-const users = require('./routes/users');
+// /* Connect to database */
+// db.connect('',()=>{
+// 	console.log('Connected to database.')
+// })
 
+/* Models */
+const fileModel = require('./models/file')(mongoose)
+
+/* Routes */
+const apiRoutes = require('./routes/api')(express, fileModel)
 
 const app = express();
 
+/* Middleware */
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/', index);
-app.use('/users', users);
+/* Checking for database */
+// app.use((req, res, next)=>{
+// 	const databaseConnnectionMissing = db.isConnected
+// 	if(databaseConnnectionMissing){
+// 		const err = new Error('no database connection found');
+// 	  	err.status = 500;
+// 	 	next(err);
+// 	}
+// 	next()
+// });
+
+/* Mapping routes */
+app.use('/api', apiRoutes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
