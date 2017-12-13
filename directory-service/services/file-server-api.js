@@ -11,31 +11,33 @@ module.exports=(function(serverIps, fetch){
 		}
 	})(serverIps)
 
-	const API = function(){}
+	const FileAPIService = function(){}
 	
-	API.prototype.request = function(path, method, body=null, headers={}) {
+	FileAPIService.prototype.request = function(path, method, body=null, headers={}) {
 		const url = getUrl()
 		const options = {method, headers}
 
 		return fetch(url,options)
 	}
 
-	API.prototype.read = function(){
+	FileAPIService.prototype.read = function(id){
 		return this.request(`/files/${id}`, 'GET')
 
 	}
 
-	API.prototype.write = function(payload){
-		return this.request(`/files/${id}`, 'POST',payload)
+	FileAPIService.prototype.write = function(id, fileBuffer){
+		// reply with associated id
+		return this.request(`/files/`, 'POST', fileBuffer)
 
 	}
 
-	API.prototype.update = function(){
-		return this.request(`/files/${id}`, 'PUT',payload)
+	FileAPIService.prototype.update = function(id, fileBuffer){
+		// reply with associated id
+		return this.request(`/files/${id}`, 'PUT', fileBuffer)
 
 	}
 
-	API.prototype.delete = function(){
+	FileAPIService.prototype.delete = function(id){
 		return this.request(`/files/${id}`, 'DELETE')
 
 	}
