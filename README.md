@@ -86,6 +86,7 @@ The response payload is also encrypted with the users session-key.
 ```
 ### Client
 The client is like any AFS client, it has the following functions.
+
 | Commands | Function |
 | ------ | ------ |
 | afs login <username> <password> | Authenticates the user. Also fetches and caches all files off the server to the local disk.  |
