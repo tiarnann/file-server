@@ -8,6 +8,7 @@
 - [x] Caching
 - [x] Transactions
 - [x] Lock Service
+- [ ] API Docs for services
 
 
 ## Overview
@@ -83,6 +84,16 @@ Payload is encrypted with the users session-key. The ticket contains the users s
 The response payload is also encrypted with the users session-key.
 
 ```
+### Client
+The client is like any AFS client, it has the following functions.
+| Commands | Function |
+| ------ | ------ |
+| afs login <username> <password> | Authenticates the user. Also fetches and caches all files off the server to the local disk.  |
+| afs fetch | Manually fetch and cache all files in the server to the local disk. |
+| afs open <file> <write\|read> | Opens a new (write-only) or existing file in a given mode. |
+| afs close <file> <write\|read> | Closes a file for a given mode. If for write, it will push the new data up to the cloud. |
+| afs rm <file> | Deletes a given file locally and off the server |
+
 
 ### Directory Service
 Supports
@@ -91,7 +102,7 @@ Supports
 3. Create a file
 4. Update a file
 5. Locking
-[Directory Service API can be seen here](http://google.com)
+<!-- [Directory Service API can be seen here](http://google.com) -->
 
 ### Lock Service
 The service is integrated into the directory service. See the api above.
@@ -111,7 +122,7 @@ Supports
 4. Update a file
 5. Locking
 
-[Transaction Service API can be seen here](http://google.com)
+<!-- [Transaction Service API can be seen here](http://google.com) -->
 
 ### Replication
 Replication is integrated into the databases using [Replica Sets](https://docs.mongodb.com/manual/replication/). This provides that there is always a server.
