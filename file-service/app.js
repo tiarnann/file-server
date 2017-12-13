@@ -7,7 +7,7 @@ const config = require('./config')
 mongoose.Promise = global.Promise
 
 /* Connect to database */
-mongoose.connect('mongodb://localhost:27017/file-server-database')
+mongoose.connect('mongodb://localhost:27017/file-server-database',{ replset:{ poolSize: 3 }})
 	.then(()=>{
 		console.log('Connected to database.')
 	})
