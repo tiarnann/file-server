@@ -1,60 +1,85 @@
 module.exports=(function(express, file){
+	if(typeof express === 'undefined' || express == null){
+		console.error(`Param express not defined`)
+	}
+
+	if(typeof file === 'undefined' || file == null){
+		console.error(`Param file not defined`)
+	}
+
 	const File = file
 	const router = express.Router();
 	
-	/* read home page. */
-	router.get('/files/:fileId', function(req, res, next) {
-		const {payload} = req.body
-		const {name} = payload
-			
-		File.find({'name': name},(err, file)=>{
-			if(err){
-				res.send(500)
-			}
-
-			res.send(file)
-		})
+	router.get('/',(req, res, next)=>{
+		res.status(200)
+		res.send('ok')
 	})
 
-	/* write file */
-	router.post('/files/:fileId', function(req, res, next) {
+	/* read home page. */
+	router.get('/files/:fileId', (req, res, next)=>{
+		const {fileId} = req.params
 		const {payload} = req.body
-		const {file} = payload
-		const {name, data} = file
+			
+		File.find({'_id': fileId})
+			.then((file)=>{
+				res.status(200)
+				res.send(file)
+			})
+			.catch((err)=>{
+				res.send(404)
+			})
+	})
 
-		File.create(file, (err, file)=>{
-			if(err){
-				res.send(500)
-			}
+	/* 
+		write file 
+		replies with associatedFileId for the new file
+	*/
+	router.post('/files', (req, res, next)=>{
+		const {data} = req.body
+		console.log(req.body)
+		console.log(data)
+		const newFile = new File({'data': data})
 
-			res.send(200)
-		})
+		console.log(newFile)
+
+		newFile.save()
+			.then((result)=>{
+				res.status(200)
+				res.send({
+					'associatedFileId': result['_id']
+				})
+			})
+			.catch((err)=>{
+				res.status(404)
+				res.send('file not found')
+			})
 	})
 
 	/* update file */
-	router.put('/files/:fileId', function(req, res, next) {
-		const {payload} = req.body
-		const {file} = payload
-		const {name, data} = file
+	router.put('/files/:fileId', (req, res, next)=>{
+		const {fileId} = req.params
+		const {data} = file
 
-		File.update({'name':name},file,(err, file)=>{
-			if(err){
-				res.send(500)
-			}
-
-			res.send(200)
-		})
+		File.update({'_id':fileId}, {data})
+			.then((result)=>{
+				res.send(200)
+			})
+			.catch((err)=>{
+				res.send(err)
+			})
 	})
 
 	/* delete home page. */
-	router.delete('/files/:fileId', function(req, res, next) {
-		File.remove({'name':name},(err, file)=>{
-			if(err){
-				res.send(500)
-			}
+	router.delete('/files/:fileId', (req, res, next)=>{
+		const {fileId} = req.params
 
-			res.send(200)
-		})
+		File.remove({'_id':fileId})
+			.then((result)=>{
+				res.send(200)
+			})
+			.catch((err)=>{
+				res.send(err)
+			})
 	})
 
 	return router

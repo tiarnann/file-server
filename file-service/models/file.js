@@ -2,11 +2,10 @@ module.exports=(function(mongoose){
 	const Schema = mongoose.Schema;
 
 	const fileSchema = new Schema({
-		name: String,
-		data: Buffer
+		'data': Buffer
 	}, { collection: 'files' })
 
-	mongoose.model('File', fileSchema) 
+	return mongoose.model('File', fileSchema) 
 })
 
 
