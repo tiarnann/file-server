@@ -3,6 +3,7 @@ const path = require('path');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose')
+const config = require('./config')
 mongoose.Promise = global.Promise
 
 /* Connect to database */
@@ -21,7 +22,6 @@ const shadowFileModel = require('./models/shadow-file')(mongoose)
 
 /* Routes */
 const filesRoutes = require('./routes/files')(express, fileModel)
-const transactionsRoutes = require('./routes/transactions')(express, transactionModel, shadowFileModel)
 
 const app = express();
 
@@ -30,20 +30,13 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-/* Checking for database */
-// app.use((req, res, next)=>{
-// 	const databaseConnnectionMissing = db.isConnected
-// 	if(databaseConnnectionMissing){
-// 			const err = new Error('no database connection found');
-// 		  	err.status = 500;
-// 		 	next(err);
-// 	}
-// 	next()
-// });
+
+const {secret} = config
+const verifyAndDecrypt = require('../lib/authentication/server-client-authentication')(secret,['127.0.0.1'])
+app.use(verifyAndDecrypt)
 
 /* Mapping routes */
 app.use('/api', filesRoutes);
-app.use('/api', transactionsRoutes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

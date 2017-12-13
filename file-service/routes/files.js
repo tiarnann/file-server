@@ -35,9 +35,9 @@ module.exports=(function(express, file){
 		replies with associatedFileId for the new file
 	*/
 	router.post('/files', (req, res, next)=>{
-		const {data} = req.body
 		console.log(req.body)
-		console.log(data)
+		const {payload} = req.body
+		const {data} = payload
 		const newFile = new File({'data': data})
 
 		console.log(newFile)
@@ -60,7 +60,7 @@ module.exports=(function(express, file){
 	router.put('/files/:fileId', (req, res, next)=>{
 		const {fileId} = req.params
 		const {payload} = req.body
-		const {data} = req.body
+		const {data} = payload
 		
 
 		File.update({'_id':fileId}, {data})

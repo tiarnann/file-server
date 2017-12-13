@@ -22,6 +22,11 @@ app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
+// Decrypt middleware //
+const {secret} = config
+const verifyAndDecrypt = require('../lib/authentication/server-client-authentication')(secret,['127.0.0.1'])
+app.use(verifyAndDecrypt)
+
 /* Getting all dependencies and injecting them */
 const transactionModel = require('./models/transaction')(mongoose)
 const shadowFileModel = require('./models/shadow-file')(mongoose)

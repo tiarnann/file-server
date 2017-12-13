@@ -11,14 +11,14 @@ const mongoose = require('mongoose')
 const db = mongoose.connection
 mongoose.Promise = global.Promise
 
-/* Redis */
+// Redis //
 /*const redis = require("redis");
 const {redisOptions} = config
 const client = redis.createClient(redisOptions);
 redis.debug_mode = true;*/
 
 
-/* Connect to database */
+// Connect to database //
 mongoose.connect('mongodb://localhost:27017/file-server-test')
 .then(()=>{
 	console.log('Connected to database.')
@@ -27,27 +27,27 @@ mongoose.connect('mongodb://localhost:27017/file-server-test')
 	console.log('Error occurred while connecting to database.')
 })
 
-/* Models */
+// Models //
 const accessControlModel = require('./models/access-control')(mongoose)
 const fileModel = require('./models/file')(mongoose)
 
 
-/* Routes */
+// Routes //
 const filesRoutes = require('./routes/files')(express, fileModel, accessControlModel, fileServerApi)
 const accessControlRoutes = require('./routes/access-control')(express, fileModel, accessControlModel)
 const app = express();
 
-/* Middleware */
+// Middleware //
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// Auth
-// const {secret} = config
-// const auth = require('../lib/authentication/auth-service')
-// const verifyAndDecrypt = require('../lib/authentication/server-client-authentication')(auth, secret)
-// app.use(verifyAndDecrypt)
+// Decrypt middleware //
+const {secret} = config
+const verifyAndDecrypt = require('../lib/authentication/server-client-authentication')(secret,['127.0.0.1'])
+app.use(verifyAndDecrypt)
+
 // 
 /* Attach redis */
 // app.use((req,res, next)=>{req.redis = client;next()})

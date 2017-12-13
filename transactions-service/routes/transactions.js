@@ -27,7 +27,8 @@ module.exports=(function(express, transactionModel, shadowFileModel, fileModel){
 	 * @apiSuccess (200) {Object} [an object containing the created transactionId]
 	 */
 	router.post('/transactions/', (req, res, next)=>{
-		const {host, port} =  {host:'localhost'}
+		const host = req.ip
+		const port = 0
 
 		Transaction.create({server: host, port:port })
 		.then((result)=>{
