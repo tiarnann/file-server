@@ -1,7 +1,7 @@
 # Distributed Transparent File Access
 
 ## Todo
-- [ ] Security Service
+- [x] Security Service
 - [ ] Directory Service
 - [ ] Replication
 - [ ] Caching
