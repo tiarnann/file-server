@@ -106,22 +106,16 @@ const api = (function(auth, express, User, db, identitySecrets){
 				res.send('unauthorised')
 				next()
 			}
-			console.log(password)
-			console.log(payload)
+
 			auth.decrypt(payload).with(password).then(dec=>JSON.parse(dec))
 				.then((decrypted)=>{
-					console.log('this is decrypted')
 					const {identity} = decrypted
 					return identitySecrets[identity]
 				}).then(secret=>{
-					console.log(secret)
-					console.log(sessionKey)
 					return auth.encrypt(sessionKey).with(secret).then(ticket=>ticket)
 				}).then(ticket=>{
-					console.log(ticket)
 					return {'session-key': sessionKey,'ticket': ticket}
 				}).then(token=>{
-					console.log(token)
 					res.status(200)
 					res.send(token)
 				}).catch(err => {
