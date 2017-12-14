@@ -38,16 +38,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-/* Checking for database */
-// app.use((req, res, next)=>{
-// 	const databaseConnnectionMissing = db.isConnected
-// 	if(databaseConnnectionMissing){
-// 		const err = new Error('no database connection found');
-// 	  	err.status = 500;
-// 	 	next(err);
-// 	}
-// 	next()
-// });
+// Auth
+const {secret} = config
+const auth = require('../lib/authentication/auth-service')
+const verifyAndDecrypt = require('../lib/authentication/server-client-authentication')(auth, secret)
+app.use(verifyAndDecrypt)
 
 /* Mapping routes */
 app.use('/api', filesRoutes);
