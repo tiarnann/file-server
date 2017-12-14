@@ -3,7 +3,6 @@ const path = require('path');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose')
-const db = mongoose.connection
 mongoose.Promise = global.Promise
 
 /* Connect to database */
