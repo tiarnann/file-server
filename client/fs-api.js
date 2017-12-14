@@ -1,6 +1,5 @@
-module.exports=(function(fs){
+module.exports=(function(fs,directory){
 	const identitySessionKeys = {
-
 	}
 
 	const FSAPI = function(){}
@@ -14,4 +13,6 @@ module.exports=(function(fs){
 	FSAPI.prototype.update = async function(filename, buffer){}
 
 	FSAPI.prototype.delete = async function(filename){}
+
+	return new FSAPI()
 })
