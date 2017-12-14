@@ -42,5 +42,5 @@ module.exports=(function(serverIps, fetch){
 
 	}
 
-	return new API()
+	return new FileAPIService()
 })

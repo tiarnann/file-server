@@ -5,8 +5,7 @@ module.exports=(function(mongoose){
 		name: String,
 		relative: String,
 		associatedFileId: Schema.Types.ObjectId,
-		server: String,
-		locked: {type: Boolean, default: false}
+		server: String
 	}, { collection: 'files' })
 
 	mongoose.model('File', fileSchema) 

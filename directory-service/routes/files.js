@@ -7,7 +7,7 @@ module.exports=(function(express, file, fileServerApi){
 		const {payload} = req.body
 		const {name} = payload
 			
-		File.find({'name': name}),(err, file)=>{
+		File.find({'name': name},(err, file)=>{
 			if(err){
 				res.send(500)
 			}

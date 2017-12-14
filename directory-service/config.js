@@ -7,6 +7,7 @@
 		Redis store for sessions
  */
 module.exports={
+	'secret': 'SESSION_KEY',
 	'port': 3001,
 	'fileServers':[
 		/*list of ips*/
